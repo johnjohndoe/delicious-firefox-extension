@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://ybookmarks/skin/overlay.css" type="text/css"?>
+<?xml-stylesheet href="chrome://ybookmarks/skin/ybJump.css" type="text/css"?>
+
+<!DOCTYPE page SYSTEM "chrome://ybookmarks/locale/ybookmarks.dtd">
+
+<dialog
+   id="ybJumpToTag" 
+   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+   title="&ybJumpToTag.dialog.title;"
+   buttons="accept,cancel"
+   ondialogaccept="jumpToTag();"
+   >
+<script type="application/x-javascript" src="chrome://ybookmarks/content/providerApis.js"/>
+<script type="application/x-javascript" src="chrome://ybookmarks/content/ybookmarksUtils.js"/>
+<script type="application/x-javascript" src="chrome://ybookmarks/content/ybJump.js"/>
+
+	
+<hbox flex="1" align="center">
+ <label value="&ybJumpToTag.dialog.label;"/>
+ <jumpautocomplete id="ybJumpControl" popupmaxheight="450" flex="1" cols="85" />
+  <!-- panel id="jumpAutoCompleteRichResult" noautofocus="true" hidden="true"/>
+ <textbox id="ybJumpControl" autocompletepopup="jumpAutoCompleteRichResult" maxrows="10"/-->
+</hbox>
+</dialog>

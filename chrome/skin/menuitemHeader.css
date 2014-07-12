@@ -1,0 +1,22 @@
+.label-link {
+  color             : blue;
+  text-decoration   : underline;
+  border            : 1px solid transparent;
+}
+  
+.label-link:hover:active {
+  color                 : red;
+}
+
+.label-link[disabled="true"] {
+  text-decoration   : none;
+}
+
+.separator {
+  min-height: 1em;
+  margin : 2px 0.2em;
+  border-right : 1px solid ThreeDHighlight;
+  border-left : 1px solid ThreeDShadow;
+  width : 2px;
+}  
+

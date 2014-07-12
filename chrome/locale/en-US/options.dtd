@@ -1,0 +1,89 @@
+<!ENTITY delicious.bookmarks "Delicious">
+<!ENTITY delicious.account.caption "Delicious account">
+<!ENTITY delicious.sync.caption "Sync Bookmarks">
+<!ENTITY delicious.sync.desc 'Click "Sync Now" to check for updates to your bookmarks without reloading all of your bookmarks.'>
+<!ENTITY delicious.fullsync.desc "A full sync will clear your bookmarks and reload them from Delicious.  This process can take a few minutes, so
+only use it if you see serious inconsistencies with your bookmarks and want to reload everything.">
+<!ENTITY delicious.sync.link "Sync Now">
+<!ENTITY delicious.fullsync.link "Full Sync">
+<!ENTITY delicious.sync.accesskey "S">
+<!ENTITY delicious.fullsync.accesskey "F">
+<!ENTITY delicious.sync.status "Syncing... (progress is indicated in the status bar)">
+
+<!ENTITY delicious.about.link "Learn more about Delicious">
+
+<!ENTITY delicious.log.link "Open log file in browser tab">
+
+<!ENTITY delicious.delicious.caption "Delicious bookmarks">
+<!ENTITY delicious.bookmark.delete.warn "Warn me when I delete Delicious bookmarks">
+
+<!ENTITY delicious.original.ui.caption "Firefox Bookmarks">
+<!ENTITY delicious.original.ui.hide.label "Hide the standard Firefox bookmarks menu">
+<!ENTITY delicious.original.toolbar.hide.label "Hide original Bookmarks toolbar">
+<!ENTITY delicious.original.sidebar.hide.label "Hide original Bookmarks sidebar">
+<!ENTITY delicious.original.keybindings.remap.label "Keep the standard Firefox bookmarks keyboard shortcuts">
+<!ENTITY delicious.original.add.suggest.delicious.label "Always remind me to add Firefox bookmarks to Delicious">
+<!ENTITY delicious.original.keyword.conflicts.warn.label "Warn me when I use the same keyword for Delicious and Firefox">
+<!ENTITY delicious.debug.label "Debug level logging">
+
+<!ENTITY yboptions.tab.general.label "General">
+<!ENTITY yboptions.tab.toolbar.label "Toolbar">
+<!ENTITY yboptions.tab.advanced.label "Advanced">
+<!ENTITY yboptions.tab.debug.label "Debug">
+<!ENTITY yboptions.tab.customShortcuts.label "Keyboard shortcuts">
+<!ENTITY yboptions.tab.awesomebar.label "Awesome Bar">
+
+<!ENTITY ybtoolbar.tagsview.label "Favorite Tags View">
+<!ENTITY ybtoolbar.tagsview.overflow.enable.label "Enable overflow menus">
+<!ENTITY ybtoolbar.tagsview.overflow.removefromtoplevel.label "Remove overflowed bookmarks from top-level menu">
+<!ENTITY ybtoolbar.tagsview.overflow.level.label "Number of bookmarks to trigger overflow">
+<!ENTITY ybtoolbar.tagsview.overflow.spillover.max.label "Maximum number of overflow menus">
+<!ENTITY ybtoolbar.tagsview.overflow.spillover.minsize.label "Minimum size of overflow">
+<!ENTITY ybtoolbar.tagsview.overflow.restore_defaults.label "Restore to defaults">
+<!ENTITY delicious.bookmark.notes.truncate_automatically "Automatically truncate bookmark notes that are too long">
+<!ENTITY ybtoolbar.bundlesview.label "Tag Bundles view">
+<!ENTITY ybtoolbar.bundles.menu.includebookmarks.label "Include bookmarks in top-level tag bundle menus">
+<!ENTITY ybtoolbar.bundlesview.label "Tag Bundles view">
+<!ENTITY ybtoolbar.bundles.menu.includebookmarks.label "Include bookmarks in top-level tag bundle menus">
+
+<!ENTITY delicious.statusbaricons.caption "Status Bar">
+<!ENTITY delicious.statusbaricons.tagometer.label "Show tagometer">
+<!ENTITY delicious.statusbaricons.deliciousicon.label "Show Delicious icon">
+<!ENTITY delicious.statusbaricons.linksforyou.label "Show Inbox">
+<!ENTITY delicious.statusbaricons.networkreminder.label "Show Network activity">
+
+<!ENTITY delicious.switchTo.modeClassic.label "Switch to Classic Mode">
+<!ENTITY delicious.switchTo.modeClassic.title "Classic Mode">
+<!ENTITY delicious.switchTo.modeClassic.desc "Switching to Classic Mode adds the Delicious and Tag buttons to the main browser toolbar,
+but does not add any other features such as: Delicious Menu, Sidebar, Toolbar, Status bar, or any sync features.">
+<!ENTITY delicious.switchTo.modeStandard.label "Switch to Normal Mode">
+<!ENTITY delicious.switchTo.modeStandard.title "Normal Mode">
+<!ENTITY delicious.switchTo.modeStandard.desc "Switching to Normal Mode brings back all the normal features: such as:
+Delicious Menu, Sidebar, Toolbar, Status bar, and sync features.">
+
+<!ENTITY delicious.delShortcuts.caption "Keyboard shortcut keys for Delicious">
+<!ENTITY delicious.firefoxShortcuts.caption "Keyboard shortcut keys for Firefox Bookmarks">
+<!ENTITY delicious.shortcuts.ctrl "Ctl">
+<!ENTITY delicious.shortcuts.command "Command">
+<!ENTITY delicious.shortcuts.shift "Shift">
+<!ENTITY delicious.shortcuts.none "None">
+<!ENTITY delicious.shortcuts.addBookmarkToFF "Save a new Bookmark">
+<!ENTITY delicious.shortcuts.openBookmarksFF "Bookmarks Sidebar">
+<!ENTITY delicious.shortcuts.addBookmark "Save a new Bookmark">
+<!ENTITY delicious.shortcuts.openSidebar "Bookmarks Sidebar">
+<!ENTITY delicious.shortcuts.deliciousBookmarks "Bookmarks on Delicious">
+<!ENTITY delicious.shortcuts.jumpToTag "Jump To Tag">
+<!ENTITY delicious.shortcuts.restoreDefault "Restore Delicious Defaults">
+<!ENTITY delicious.shortcuts.restartFirefox "To apply keyboard shortcuts Firefox needs a restart. ">
+<!ENTITY delicious.shortcuts.restartButton "Restart Now">
+
+<!--Awesomebar Preferences-->
+<!ENTITY delicious.awesomebar.caption "Awesome Bar Integration">
+<!ENTITY delicious.awesomebar.enable "Enable Awesome Bar integration">
+<!ENTITY delicious.awesomebar.showDeliciousSearch "Show Delicious bookmarks in Awesome Bar search result">
+<!ENTITY delicious.awesomebar.showOnlyDeliciousSearch "Show bookmarks only from Delicious when search term is prefixed by ?? (example:  ??photography tutorial )">
+<!ENTITY delicious.awesomebar.showDeliciousTags "Show Delicious tag suggestions when search term is prefixed by >> (example:  >>games)">
+<!ENTITY delicious.awesomebar.deliciousSearchOrderBy "Sort Delicious search result by ">
+<!ENTITY delicious.awesomebar.maxRowsDeliciousSearch "Max number of rows to show from Delicious search">
+<!ENTITY delicious.awesomebar.historyMaxRows "Max number of rows to show from Firefox history">
+<!ENTITY delicious.awesomebar.restartNote "NOTE: It may require a Firefox restart for changes to take effect.">

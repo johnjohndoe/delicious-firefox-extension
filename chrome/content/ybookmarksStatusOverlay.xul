@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://ybookmarks/skin/overlayStatus.css" type="text/css"?>
+
+<!DOCTYPE overlay [
+  <!ENTITY % ybookmarksOverlayDTD SYSTEM "chrome://ybookmarks/locale/statusbar.dtd">
+  %ybookmarksOverlayDTD;
+]>
+
+<overlay id="yb-status-bar-overlay"
+	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+	<script
+		src="chrome://ybookmarks/content/ybookmarksStatusOverlay.js" />
+	<script type="application/x-javascript" src="chrome://ybookmarks/content/providerApis.js"/>
+	<script type="application/x-javascript" src="chrome://ybookmarks/content/ybookmarksUtils.js"/>
+	<script type="application/x-javascript" src="chrome://ybookmarks/content/yDebug.js"/>
+	<script type="application/x-javascript" src="chrome://ybookmarks/content/md5.js"/>
+	<script type="application/x-javascript" src="chrome://ybookmarks/content/yHttpGet.js"/>
+
+	<stringbundleset>
+		<stringbundle id="ybookmarks-status-bar-strings" src="chrome://ybookmarks/locale/statusbar.properties"/>
+	</stringbundleset>
+
+	<statusbar id="status-bar">
+		<statusbarpanel id="delicious-status-bar-panel" hidden="true">
+			<image id="delicious-status-bar-delicious-image"
+				class="statusbaricons"
+				onclick="ybookmarksUtils.openLinkToNewTab(deliciousService.getUrl('home'))"
+				tooltiptext="&ybookmarks.statusbar.delIcon.tooltip;" style="padding-right: 5px;"/>
+        
+			<image id="delicious-status-bar-network-image"
+			    onclick="statusBar.onNetworkClick();"
+			    tooltiptext="&ybookmarks.statusbar.network.tooltip;"
+				class="yb-statusbaricon-network" style="padding-right: 5px;"/>
+
+			<image id="delicious-status-bar-inbox-image"
+				class="statusbaricon-inbox" />
+			<label id="delicious-status-bar-inbox-count" />
+		</statusbarpanel>
+	</statusbar>
+</overlay>

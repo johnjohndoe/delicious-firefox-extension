@@ -1,0 +1,169 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE window SYSTEM "chrome://ybookmarks/locale/importOptions.dtd">
+
+<bindings xmlns="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl">
+  <binding id="importOptions">
+		
+		<implementation>
+			<constructor>
+        <![CDATA[
+					var strings = this._getElement("yb-import-strings");
+					var dupReplaceYes = this._getElement("yb-import-duplicates-replace-yes");
+					var dupReplaceNo = this._getElement("yb-import-duplicates-replace-no");
+				  
+					dupReplaceYes.label = strings.getFormattedString("extensions.ybookmarks.import.duplicates.replace.yes", ["Delicious"]);
+					dupReplaceNo.label = strings.getFormattedString("extensions.ybookmarks.import.duplicates.replace.no", ["Delicious"]);
+			
+					this.setToDefaults();
+    		]]>  
+      </constructor>
+						
+			<property name="addTagsInput">
+				<getter>
+					<![CDATA[
+						return this._getElement("yb-import-tags-input").value;
+					]]>
+				</getter>
+				<setter>
+					<![CDATA[
+						this._getElement("yb-import-tags-input").value = val;
+					]]>
+				</setter>
+			</property>
+
+			<property name="addTags">
+				<getter>
+					<![CDATA[
+						return this._getElement("yb-import-tags-add").checked;
+					]]>
+				</getter>
+				<setter>
+					<![CDATA[
+						var checkbox = this._getElement("yb-import-tags-add");
+						checkbox.checked = (val ? true : false);
+						this._addTagsChecked(checkbox);
+					]]>
+				</setter> 
+			</property>
+				
+			<property name="addTagsAsArray">
+				<getter>
+					<![CDATA[
+						var str = this._normalizeInputString(this.addTagsInput);
+						if (str.match(/^\s*$/)) {
+							return [];
+						} else {
+							return str.split(" ");
+						}
+					]]>
+				</getter>
+			</property>
+				
+			<property name="addPopularTags">
+				<getter>
+					<![CDATA[
+						return this._getElement("yb-import-poptags-add").checked;
+					]]>
+				</getter>
+				<setter>
+					<![CDATA[
+						this._getElement("yb-import-poptags-add").checked = (val ? true : false);
+					]]>
+				</setter>
+			</property>
+			
+			<property name="replaceDuplicates">
+     		<getter>
+					<![CDATA[
+						return this._getElement("yb-import-duplicates-replace-yes").selected;
+					]]>
+				</getter>
+				<setter>
+					<![CDATA[
+						var radioGroup = this._getElement("yb-import-duplicates-replace");
+						var selected;
+						if (val) {
+							selected = this._getElement("yb-import-duplicates-replace-yes");
+						} else {
+							selected = this._getElement("yb-import-duplicates-replace-no");
+						}
+						radioGroup.selectedItem = selected;
+					]]>
+				</setter>
+			</property>
+			
+			<method name="setToDefaults">
+				<body>
+					<![CDATA[	
+						this.addPopularTags = true;
+						this.replaceDuplicates = false;
+						this.addTagsInput = "imported";
+						this.addTags = true;
+					]]>
+				</body>
+			</method>
+			
+			<method name="_getElement">
+				<parameter name="id"/>
+				<body>
+					<![CDATA[
+						return document.getAnonymousElementByAttribute(this, "anonid", id);
+					]]>
+				</body>
+			</method>
+			
+			<method name="_normalizeInputString">
+				<parameter name="aString" />
+				<body>		
+					<![CDATA[
+			    	var result = aString.replace(/^\s*(.*?)\s*$/, "$1");
+				    result = result.replace(/\s+/g, " ");
+				    return result;
+					]]>
+				</body>	
+			</method>
+			
+			<method name="_addTagsChecked">
+				<parameter name="checkbox" />
+				<body>		
+					<![CDATA[
+						var tagsInput = this._getElement("yb-import-tags-input")
+			    	tagsInput.disabled = (checkbox.checked ? false : true);
+					]]>
+				</body>	
+			</method>
+			
+		</implementation> 		
+		
+		<content>
+			<xul:vbox>
+				<xul:description >&ybimport.desc;</xul:description>
+				<xul:checkbox anonid="yb-import-poptags-add" label="&ybimport.poptags.add;"/>
+				<xul:checkbox anonid="yb-import-tags-add" label="&ybimport.tags.add;" oncommand="_addTagsChecked(event.target);"/>
+				<xul:hbox>
+					<xul:spacer class="addtags-spacer"/>
+					<xul:textbox rows="1" anonid="yb-import-tags-input" cols="30" flex="1" disabled="true"/>
+				</xul:hbox>
+				<xul:hbox>
+					<xul:spacer class="addtags-spacer"/>
+					<xul:label disabled="true" flex="1">&ybimport.tags.add.note;</xul:label>
+				</xul:hbox>
+				<xul:label value="&ybimport.duplicates;" />
+			  <xul:radiogroup anonid="yb-import-duplicates-replace">
+			    <xul:radio anonid="yb-import-duplicates-replace-no" label=""/>
+			    <xul:radio anonid="yb-import-duplicates-replace-yes" label=""/>
+			  </xul:radiogroup>
+			  
+			</xul:vbox>
+			
+			<xul:stringbundleset>
+		    <xul:stringbundle anonid="yb-import-strings" src="chrome://ybookmarks/locale/ybookmarks.properties"/>
+		  </xul:stringbundleset>
+			
+		</content>
+		
+	</binding>
+</bindings>

@@ -1,0 +1,6 @@
+treechildren::-moz-tree-image(importedBookmark) {
+  list-style-image: url("chrome://ybookmarks/skin/import-arrow.gif") !important;
+/*  -moz-image-region: rect(0px, 16px, 16px, 0px) !important;*/
+  /*list-style-image: url("chrome://global/skin/tree/folder.png") !important;*/
+  /*  -moz-image-region: rect(17px, 16px, 0px, 16px) !important;*/
+}

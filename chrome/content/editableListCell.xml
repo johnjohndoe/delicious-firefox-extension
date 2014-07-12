@@ -1,0 +1,176 @@
+<?xml version="1.0"?>
+
+<bindings xmlns="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl">
+
+
+  <binding id="listcell-editable" extends="chrome://global/content/bindings/listbox.xml#listcell">
+		
+		<handlers>
+	    <handler event="focus" phase="capturing">
+	      <![CDATA[
+		//yDebug.print("focus");
+	        if (!this._input.hasAttribute('focused')) {
+	          this._input.setAttribute('focused','true');
+
+	        }
+	      ]]>
+	    </handler>
+		
+	    <handler event="blur" phase="capturing">
+	      <![CDATA[
+	try {
+	//yDebug.print("blur");
+				  this._input.removeAttribute('focused');
+								
+					} catch(e) { yDebug.print("blur: " + e);}
+	      ]]>
+	    </handler>
+	<!--
+			<handler event="click" phase="capturing">
+	      <![CDATA[
+	try {
+		this.select();		
+	} catch(e) { yDebug.print("click: " + e);}      ]]>
+	    </handler>
+
+	-->
+<!--		<handler event="click">
+			<![CDATA[
+		  this.select();
+		 ]]>
+		</handler>
+		-->	<handler event="keypress">
+				<![CDATA[
+			  switch(event.keyCode) {
+           	case event.DOM_VK_RETURN:  //enter
+						   event.preventDefault();
+						   break;
+						default:
+        }
+			 ]]>
+			</handler>
+			<handler event="keypup">
+				<![CDATA[
+			  switch(event.keyCode) {
+           	case event.DOM_VK_RETURN:  //enter
+						   event.preventDefault();
+						   break;
+						default:
+        }
+			 ]]>
+			</handler>
+			<handler event="keydown">
+				<![CDATA[
+			  switch(event.keyCode) {
+           	case event.DOM_VK_RETURN:  //enter
+						   event.preventDefault();
+						   break;
+						default:
+        }
+			 ]]>
+			</handler>
+	  </handlers>
+
+    <implementation>
+	   <field name="_label" />
+	   <field name="_input" />
+	   <field name="_deck" />
+
+	<!--		<property name="areSuggestionsVisible" onget="return this._areSuggestionsVisible();" />
+				-->			
+			<property name="value">
+				<setter>
+	        <![CDATA[
+					this._label.value = val;
+					this._input.value = val;
+					]]>
+				</setter>
+				<getter>
+	        <![CDATA[
+						if (!this._input.value) { 
+							this._input.value= ""; 
+						}
+						return this._input.value;
+					]]>
+				</getter>
+			</property>
+
+			<constructor>
+        <![CDATA[
+          try {
+					this._label = document.getAnonymousElementByAttribute(this, "anonid", "label");
+					this._input = document.getAnonymousElementByAttribute(this, "anonid", "input");
+					this._deck = document.getAnonymousElementByAttribute(this, "anonid", "deck");
+     					
+					} catch (e) { yDebug.print("constructor: " +e);}
+				]]>
+      </constructor>
+
+			<method name="focus">
+        <body><![CDATA[
+					this._input.focus();
+				]]></body>
+			</method>
+
+			<method name="select">
+        <body><![CDATA[
+					try {
+					//	yDebug.print("select "  + this._input.getAttribute("value") + ": " +  this._input.getAttribute("hidden"));
+							this._deck.selectedIndex = 1;
+							/*if (this._input.hidden) {
+								this._label.hidden = true;
+								this._input.hidden = false;
+							}*/
+						} catch(e) { yDebug.print("select(): " + e);}
+				]]></body>
+			</method>	<method name="deselect">
+        <body><![CDATA[
+					try {
+				//		var hidden = this._input.getAttribute("hidden") == true;
+					//	yDebug.print("deselect "  + this._input.getAttribute("value")  + ": " + hidden);
+							this._label.value = this._input.value;
+							this._deck.selectedIndex = 0;	
+						/*if (!this._input.hidden) {
+							this._label.hidden = false;
+							this._input.hidden = true;
+						}*/
+						} catch(e) { yDebug.print("deselect(): " + e);}
+				]]></body>
+			</method>
+		<!--
+			<method name="_getTagTextBox">
+        <body><![CDATA[
+					return document.getAnonymousElementByAttribute(this, "anonid", "ybTagAutoComplete-tags");
+				]]></body>
+			</method>
+-->	
+    </implementation>
+
+    <content>
+		  <children>
+				 <xul:image anonid="icon" class="listcell-icon" xbl:inherits="src=image"/>
+				 <xul:deck anonid="deck" selectedIndex="0" flex="1">
+				   <xul:label anonid="label" class="listcell-label" xbl:inherits="value=label,disabled" flex="1" crop="right"/>
+				   <xul:textbox anonid="input" xbl:inherits="value=label,disabled" flex="1" crop="right"/>
+				 </xul:deck>
+		  </children>
+		</content>
+    
+  </binding>
+ 	
+	<binding id="listcell-editable-tagautocomplete" extends="chrome://ybookmarks/content/editableListCell.xml#listcell-editable">
+		  <content>
+			  <children>
+					<xul:image anonid="icon" class="listcell-icon" xbl:inherits="src=image"/>
+						<xul:deck anonid="deck" selectedIndex="0" xbl:inherits="flex" flex="1">
+					 	  <xul:label anonid="label" class="listcell-label" xbl:inherits="value=label,disabled,crop" flex="1" crop="right"/>
+					    <xul:tagautocomplete anonid="input" xbl:inherits="value=label,disabled,crop" popupmaxheight="250" flex="1" crop="right"/>
+					 </xul:deck>
+			  </children>
+			</content>
+	</binding>
+</bindings>
+
+

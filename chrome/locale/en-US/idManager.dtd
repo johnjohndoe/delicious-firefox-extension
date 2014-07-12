@@ -1,0 +1,22 @@
+<!ENTITY loggedOut.title "Delicious">
+<!ENTITY loggedOut.keep.label "Keep">
+<!ENTITY loggedOut.keep.accesskey "K">
+
+<!ENTITY loggedOut.remove.label "Remove">
+<!ENTITY loggedOut.remove.accesskey "R">
+
+<!ENTITY reqUserCred.setup.label "Sign into Delicious">
+<!ENTITY reqUserCred.login.label "Sign in">
+<!ENTITY reqUserCred.login.accesskey "S">
+<!ENTITY reqUserCred.cancel.label "Cancel">
+<!ENTITY reqUserCred.cancel.accesskey "C">
+
+<!ENTITY loggedOut.intro "You have just signed out of Delicious">
+<!ENTITY loggedOut.outtro "Whenever you sign in again all your Delicious bookmarks will be synced and downloaded back into Firefox.">
+<!ENTITY loggedOut.keep "Leave your public Delicious bookmarks in Firefox">
+<!ENTITY loggedOut.remove "Remove all of your Delicious bookmarks from Firefox">
+<!ENTITY loggedOut.remember "Remember my decision and don't show this dialog again.">
+
+<!-- strings for classic switch dialog -->
+<!ENTITY modeSwitch.toClassic "Classic mode is a simpler mode that does not keep a local copy of your bookmarks in your browser.  Since these bookmarks are no longer needed, you can remove the data from your browser if you wish.  Please note that if you remove your bookmarks it will take longer to switch back to standard mode, as we will have to resync your bookmarks with your browser.  Classic mode will take effect on the next browser restart.">
+<!ENTITY modeSwitch.restartWarningText "Automatically restart my browser">

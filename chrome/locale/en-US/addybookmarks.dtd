@@ -1,0 +1,106 @@
+<!ENTITY addybookmarks.dialog.addTitle "Save a Bookmark">
+<!ENTITY addybookmarks.dialog.editTitle "Edit Bookmark">
+
+<!ENTITY addybookmarks.header.loggedin "Signed in as">
+
+<!ENTITY addybookmarks.url.label "URL">
+<!ENTITY addybookmarks.url.accesskey "U">
+
+<!ENTITY addybookmarks.name.label "TITLE">
+<!ENTITY addybookmarks.name.accesskey "I">
+
+<!ENTITY addybookmarks.keyword.label "KEYWORD">
+<!ENTITY addybookmarks.keyword.accesskey "K">
+<!ENTITY addybookmarks.keyword.tipContent "Keywords act as shortcuts to bookmarks. When a keyword is typed in the address bar, Firefox opens the associated bookmark.">
+
+<!ENTITY addybookmarks.note.label "NOTES">
+<!ENTITY addybookmarks.note.accesskey "O">
+<!ENTITY addybookmarks.note.tipHeader "Notes">
+<!ENTITY addybookmarks.note.tipContent "Enter additional notes here. These notes are different from tags.">
+<!ENTITY addybookmarks.note.chars "chars">
+
+<!ENTITY addybookmarks.tags.label "TAGS">
+<!ENTITY addybookmarks.tags.accesskey "T">
+<!ENTITY addybookmarks.tags.help "Separate Tags with comma. E.g. hotels at bali, bargains and deals, newyork etc.">
+<!ENTITY addybookmarks.tags.tipHeader "Tags">
+<!ENTITY addybookmarks.tags.tipContent "Tags are descriptive words that are stored along with this bookmark. Tags are especially helpful in organizing and searching your bookmarks.">
+
+<!ENTITY addybookmarks.sharing.label "Mark as Private">
+<!ENTITY addybookmarks.sharing.accesskey "P">
+<!ENTITY addybookmarks.sharing.tipHeader "Sharing">
+<!ENTITY addybookmarks.sharing.tipContent "Check this option if you want this to be a private bookmark">
+
+<!ENTITY addybookmarks.localOnly.label "local only">
+<!ENTITY addybookmarks.localOnly.accesskey  "L">
+
+<!ENTITY addybookmarks.recommended.label "Recommended Tags:">
+<!ENTITY addybookmarks.recommended.help "click to add from your existing tags">
+<!ENTITY addybookmarks.network.label "Network Tags:">
+<!ENTITY addybookmarks.network.help "click to share this link with your network">
+<!ENTITY addybookmarks.popular.label "Popular Tags:">
+<!ENTITY addybookmarks.popular.help "click to add from popular tags on Delicious">
+<!ENTITY addybookmarks.popular.emptyMessage "As there are no popular tags for this, we can't recommend any tags for you.">
+
+<!ENTITY addybookmarks.options.label "Options">
+<!ENTITY addybookmarks.options.tipContent "Click to customize the add dialog and various other features.">
+
+<!ENTITY addybookmarks.delete.label "Delete">
+<!ENTITY addybookmarks.delete.accesskey "D">
+
+<!ENTITY addybookmarks.save.label "Save">
+<!ENTITY addybookmarks.save.accesskey "S">
+
+<!ENTITY addybookmarks.cancel.label "Cancel">
+<!ENTITY addybookmarks.cancel.accesskey "C">
+
+<!ENTITY addybookmarks.send.label "SEND">
+<!ENTITY addybookmarks.send.accesskey "E">
+
+<!ENTITY addybookmarks.send.help "Send your bookmarks">
+<!ENTITY addybookmarks.tweet.message.label "MESSAGE">
+
+<!ENTITY addybookmarks.tweet.message.emptytext "Type your message here...">
+<!ENTITY addybookmarks.tweet.charlimit "116">
+<!ENTITY addybookmarks.tweet.chars "chars">
+<!ENTITY addybookmarks.share.sendtabs.header "Social Networks">
+<!ENTITY addybookmarks.share.sendtabs.delicious "Delicious">
+<!ENTITY addybookmarks.share.sendtabs.twitter "Twitter">
+<!ENTITY addybookmarks.share.sendtabs.email "Email">
+<!ENTITY addybookmarks.share.sendtabs.email.previous "Previously sent">
+<!ENTITY addybookmarks.share.sendtabs.email.help "Enter email address in send field or click from below to add">
+
+
+<!ENTITY addybookmarks.sendtabs.delicious.yournetwork "Your Network">
+<!ENTITY addybookmarks.sendtabs.delicious.mostused "Most Used">
+<!ENTITY addybookmarks.sendtabs.delicious.clickToAdd "Click to add recipients to the send field.">
+<!ENTITY addybookmarks.sendtabs.delicious.networkIntro.question "Did you know?">
+<!ENTITY addybookmarks.sendtabs.delicious.networkIntro 'You can use Delicious to send interesting bookmarks to your friends. To make a bookmark show up in their Delicious Inbox, tag the bookmark with "for:" followed by their username (for example "for:auser").'>
+<!ENTITY addybookmarks.sendtabs.delicious.networkIntro.text1 "To make sending bookmarks even easier, add people to your">
+<!ENTITY addybookmarks.sendtabs.delicious.networkIntro.text2 "Network">
+<!ENTITY addybookmarks.sendtabs.delicious.networkIntro.text3 "and their names will show up right here.">
+<!ENTITY addybookmarks.sendtabs.delicious.networkIntro.learnMore "Learn More.">
+
+<!ENTITY addybookmarks.sendtabs.twitter.message "You can now share your bookmarks with Twitter!">
+<!ENTITY addybookmarks.sendtabs.twitter.editsettings "Edit Settings">
+<!ENTITY addybookmarks.sendtabs.twitter.editsettings.desc "To share all of your bookmarks with twitter, ">
+<!ENTITY addybookmarks.sendtabs.twitter.username "Twitter Username">
+<!ENTITY addybookmarks.sendtabs.twitter.passwd "Twitter Password">
+<!ENTITY addybookmarks.sendtabs.twitter.private "Tweet all bookmarks unless private">
+<!ENTITY addybookmarks.sendtabs.twitter.save "Save">
+<!ENTITY addybookmarks.sendtabs.twitter.cancel "Cancel">
+
+<!ENTITY addybookmarks.sendtabs.twitter.tweethelp1 "To share your bookmarks with Twitter, type">
+<!ENTITY addybookmarks.sendtabs.twitter.attwitter "@twitter">
+<!ENTITY addybookmarks.sendtabs.twitter.tweethelp2 "into the send field above">
+ 
+<!ENTITY addybookmarks.tweet.url.desc "URL automatically added to the message">
+<!ENTITY addybookmarks.send.clear "Clear">
+
+<!ENTITY addybookmarks.toptab.tags "Tags">
+<!ENTITY addybookmarks.toptab.send "Send">
+
+
+
+
+
+

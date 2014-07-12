@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://ybookmarks/skin/ybBookmarksManager.css" type="text/css"?>
+<?xml-stylesheet href="chrome://ybookmarks/skin/ybBookmarksTree.css"?>
+
+<!DOCTYPE overlay [
+  <!ENTITY % ybBookmarksTreeDTD SYSTEM "chrome://ybookmarks/locale/ybBookmarksManager.dtd">
+  %ybBookmarksTreeDTD;
+  <!ENTITY % ybBookmarksDTD SYSTEM "chrome://ybookmarks/locale/ybookmarks.dtd">
+  %ybBookmarksDTD;
+]>
+
+<overlay
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
+         xmlns:nc="http://home.netscape.com/NC-rdf#">
+<window id="places">
+	<script type="application/x-javascript" src="chrome://ybookmarks/content/ydebug.js"/>
+	<script type="application/x-javascript" src="chrome://ybookmarks/content/ybookmarksUtils.js"/>
+	<script type="application/x-javascript" src="chrome://ybookmarks/content/ybPlacesManager.js"/>
+	<script src="chrome://ybookmarks/content/loginwindow.js" type="application/x-javascript" />
+	<script src="chrome://ybookmarks/content/idManager.js" type="application/x-javascript" />
+	<script src="chrome://ybookmarks/content/providerApis.js" type="application/x-javascript" />
+	
+	<stringbundle id="yb-strings" src="chrome://ybookmarks/locale/ybookmarks.properties"/>
+	<stringbundle id="yb-places-strings" src="chrome://ybookmarks/locale/ybPlacesManager.properties"/>
+    <stringbundle id="strbndl_idManager" src="chrome://ybookmarks/locale/idManager.properties"/>
+
+	
+	<command id="yb_cmd_import_bookmarks" oncommand="yb_importBookmarks();"/>
+	
+	<toolbox id="placesToolbox">
+		<toolbar id="placesToolbar">
+		   <toolbarbutton id="ybImportFF3" class="toolbarbutton-1 chromeclass-toolbar-additional"
+                          insertafter="placesMenu,maintenanceButton" 
+                          label="&ybookmarks.bookmarks.manager.import.label;"
+	                      accesskey="&ybookmarks.bookmarks.manager.import.accesskey;"
+	                      command="yb_cmd_import_bookmarks" hidden="true" yb_std_mode_only="true"/>
+          <button id="ybImportFF3-OSX" insertafter="placesMenu,maintenanceButton" label="&ybookmarks.bookmarks.manager.import.label;"
+                        accesskey="&ybookmarks.bookmarks.manager.import.accesskey;"
+                        command="yb_cmd_import_bookmarks" hidden="true" yb_std_mode_only="true"/>
+		</toolbar>
+	</toolbox>
+</window>
+</overlay>

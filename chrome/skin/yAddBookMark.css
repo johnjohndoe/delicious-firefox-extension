@@ -1,0 +1,195 @@
+.imageTip {
+   -moz-binding: url('chrome://ybookmarks/content/imageTip.xml#imageTip');
+}
+
+#dlg_AddYBookMark {
+  padding: 0px 0px 0px 0px;
+  background-color: #F2F2F2 !important;
+  -moz-appearance: none !important;
+  font-family: arial,helvetica,clean,sans-serif;
+  font-size: 12px;
+}
+
+#hbx_header {
+  padding: 0px;
+  background-color: white;
+  color: WindowText;
+  min-height: 40px;
+}
+
+#grd_main {
+  padding-left: 5px;
+}
+
+#lbl_origPostInfo {
+  text-align: right;
+  font-weight: bold; 
+}
+
+#lbl_userName {
+  text-align: left;
+  font-weight: bold; 
+}
+
+.no-left-margin {
+  margin-left: 0px;
+}
+
+.colored-text {
+  color: blue;
+}
+
+.moused-over-tag {
+  padding: 2px 4px 2px 4px;
+  margin: 1px 1px 1px 1px;
+  color: white;
+  background-color: #8F8F8F;
+}
+
+.moused-over-tag:hover {
+  background-color: #565656;  
+}
+
+.moused-out-tag {
+  padding: 2px 4px 2px 4px;
+  margin: 1px 1px 1px 1px;
+  color: #3274D0;
+}
+
+#lbl_options {
+  padding-left: 25px;
+}
+
+.right-aligned-text2 {
+   text-align: right;
+}
+
+.right-aligned-text {
+   text-align: right;
+   font-weight: bold;
+   font-size: 88%;
+}
+
+.suggested-tags-label {
+  padding-left: 15px;
+}
+
+.tags-container {
+  padding-left: 50px;
+}
+
+#hbx_buttons {
+  padding: 0px 5px 4px 0px;
+}
+
+/* Copied from firefox 2.0 addBookmarks.css */
+menulist#tb_yBookmarkName[droppable="false"] {
+  -moz-appearance: none;
+  margin: 0px;
+  border: none;
+  padding: 0px;
+  height: auto !important;
+}
+
+menulist#tb_yBookmarkName[droppable="false"] > .menulist-editable-box {
+  /* These rules are duplicates of the rules for the textbox element
+   * in textbox.css and should track changes in that file.
+   */
+  -moz-appearance: textfield;
+  cursor: text;
+  margin: 4px 4px;
+  border: 3px solid;
+  -moz-border-top-colors: transparent #888888 #000000;
+  -moz-border-right-colors: transparent #FFFFFF #000000;
+  -moz-border-bottom-colors: transparent #FFFFFF #000000;
+  -moz-border-left-colors: transparent #888888 #000000;
+  -moz-border-radius-topright: 2px;
+  -moz-border-radius-bottomleft: 2px;
+  /*padding: 1px 0px 1px 2px ;*/
+  padding: 0px;
+  background-color: -moz-Field;
+  color: -moz-FieldText;
+}
+
+menulist#tb_yBookmarkName[droppable="false"] > .menulist-editable-box > html|*.textbox-input {
+  margin: 0px !important;
+  border: none !important;
+  padding: 0px !important;
+  background-color: inherit;
+  color: inherit;
+  font: inherit;
+}
+
+/* Hide the drop marker and the popup. */
+
+menulist#tb_yBookmarkName[droppable="false"] > .menulist-dropmarker {
+  display: none;
+}
+
+menulist#tb_yBookmarkName[droppable="false"] > menupopup {
+  display: none;
+}
+
+
+/* typedown suggestion */
+#suggestion-box {
+  
+  left: 100px; 
+  top: 0px; 
+  position: fixed;
+  border: 1px solid grey;
+  padding : 0;
+  margin : 0;
+}
+
+.suggestion-tag {
+
+  padding: 2px;
+  color:#565656;
+  background-color: white;
+}
+
+.suggestion-tag:hover, .suggestion-tag[highlight="true"] {
+
+  color: white;
+  background-color: #565656;
+}
+
+#lbl_notesCount.overflowed {
+    color: red;
+}
+
+#box_noShare {
+/*	background-color: #3274D0;*/
+}
+
+#lbl_yBookmarkURL {
+	color: #3274D0;
+}
+
+
+textbox[type="ybautocomplete"] {
+	-moz-binding: url('chrome://ybookmarks/content/ybautocomplete.xml#ybautocomplete');
+}
+
+labelx {
+	-moz-binding: url('chrome://ybookmarks/content/ybSharingBindings.xml#ybLabelX');
+}
+
+.ybtaglines {
+	-moz-binding: url('chrome://ybookmarks/content/ybSharingBindings.xml#ybTagLines');
+
+}
+
+.ybtaglinesautocomplete {
+	-moz-binding: url('chrome://ybookmarks/content/ybSharingBindings.xml#ybTagLinesAutoComplete');
+	-moz-appearance: none;
+}
+
+.clearNewTags {
+background:transparent url(chrome://ybookmarks/skin/del_sprite_smallIcons.gif) no-repeat scroll 0 -1323px !important;
+cursor:pointer;
+height:14px;
+width:14px;
+padding: 0px 0px 0px 2px;
+}

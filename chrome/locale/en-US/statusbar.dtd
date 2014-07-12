@@ -1,0 +1,10 @@
+<!-- Status Bar -->
+<!ENTITY ybookmarks.statusbar.delIcon.tooltip "Open Delicious">
+<!ENTITY ybookmarks.statusbar.alertIcon.tooltip "Alerts from Delicious">
+<!ENTITY ybookmarks.statusbar.alertWindowTitle "Alert">
+<!ENTITY ybookmarks.statusbar.alertWindowExitText "HIDE">
+<!ENTITY ybookmarks.statusbar.alertWindowExitIcon.tooltip "Close Alert Window">
+<!ENTITY ybookmarks.statusbar.alertWindowMoreText "More Details">
+<!ENTITY ybookmarks.statusbar.tagometer.toptag "Top Tags">
+<!ENTITY ybookmarks.statusbar.network.tooltip "Your Network in Delicious">
+<!ENTITY ybookmarks.statusbar.tagoWindowExitIcon.tooltip "Close Tagometer Window">

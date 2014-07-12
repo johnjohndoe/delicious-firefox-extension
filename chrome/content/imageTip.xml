@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+
+<bindings xmlns="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <binding id="imageTip">
+
+    <resources>
+      <stylesheet src="chrome://ybookmarks/skin/imageTip.css" />
+    </resources>
+
+    <implementation>
+      <constructor>
+        <![CDATA[
+          var vbox = document.getAnonymousElementByAttribute( this, "anonid", "tipBox" );
+          var hdrText = vbox.getAttribute( "tipHeader" );
+          if( hdrText.length > 0 ) {
+            var hdrLabel = document.createElement( "label" );
+            hdrLabel.setAttribute( "value", hdrText );
+            hdrLabel.setAttribute( "class", "tipHeader" );
+            vbox.appendChild( hdrLabel );
+          }           
+          var contentText = vbox.getAttribute( "tipContent" );
+          if( contentText.length > 0 ) {
+            var words = contentText.split( ' ' );
+            var i, text = "", lbl, createLabel, wordIncluded, desc;
+            var wordSpc;
+            for( i = 0; i < words.length; ++i ) {
+              wordIncluded = createLabel = false;
+              if( text.length + words[ i ].length <= 31 ) {
+                wordIncluded = true;
+                if( text.length > 0 ) {
+                  text += ' ';
+                }
+                text += words[ i ];
+                if( i == words.length - 1 ) {       // it's the last word anyway
+                  createLabel = true;
+                }
+              }
+              else {
+                createLabel = true;
+              }
+              if( createLabel ) {
+                lbl = document.createElement( "label" );
+                lbl.setAttribute( "value", text );
+                vbox.appendChild( lbl );
+                if( ( !wordIncluded ) && ( i == words.length - 1 ) ) {      
+                  // last word will be picked up in re-iteration
+                  --i;
+                  text = "";
+                  continue;
+                }
+                text = words[ i ];
+              }
+            }
+          }
+        ]]>  
+      </constructor>
+      <method name="tipImageClicked">
+        <body><![CDATA[
+          var tooltip = document.getAnonymousElementByAttribute( this, "anonid", "tooltip" );
+          tooltip.showPopup( tooltip, this.boxObject.screenX, this.boxObject.screenY );
+         ]]></body>
+      </method>
+    </implementation>
+    
+    <content>
+      <children />
+      <xul:hbox tooltip="_child" align="center">
+        <xul:image src="chrome://ybookmarks/skin/questionMark.gif" onclick="tipImageClicked();"/>
+        <xul:tooltip anonid="tooltip">
+          <xul:vbox anonid="tipBox" xbl:inherits="tipHeader,tipContent" />
+        </xul:tooltip>
+      </xul:hbox>
+    </content>
+  </binding>
+</bindings>

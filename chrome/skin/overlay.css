@@ -1,0 +1,709 @@
+/* xbl */
+ybsidebar {
+  -moz-binding: url("chrome://ybookmarks/content/ybSidebarOverlay.xml#ybsidebar");
+}
+
+splitter[ybookmarkPopup="true"] {
+  -moz-binding: url("chrome://ybookmarks/content/ybSidebarOverlay.xml#splitter") !important;
+}
+
+menuitemheader {
+  -moz-binding: url("chrome://ybookmarks/content/menuitemHeader.xml#menuitemHeader") !important;
+}
+
+/* import options*/
+importoptions {
+  -moz-binding: url("chrome://ybookmarks/content/importOptions.xml#importOptions") !important;
+}
+
+spacer.addtags-spacer {
+  width: 2em;
+}
+/* end import options*/
+
+tagautocomplete {
+  -moz-binding: url("chrome://ybookmarks/content/tagAutoComplete.xml#tagAutoComplete") !important;
+}
+
+jumpautocomplete {
+  -moz-binding: url("chrome://ybookmarks/content/jumpAutoComplete.xml#jumpAutoComplete") !important;	
+}
+	
+listcell.editable {
+  -moz-binding: url("chrome://ybookmarks/content/editableListCell.xml#listcell-editable") !important;
+}
+
+listcell.editable-tagautocomplete {
+  -moz-binding: url("chrome://ybookmarks/content/editableListCell.xml#listcell-editable-tagautocomplete") !important;
+}
+
+listcell.editable .listcell-label {
+  padding-top: 6px !important;
+  padding-left: 6px !important;
+}
+listcell.editable-tagautocomplete .listcell-label {
+  padding-top: 6px !important;
+  padding-left: 6px !important;
+}
+
+/*tagautocomplete .yb-tag-suggestions-popup {
+    max-height: 100px !important;
+}
+
+tagautocomplete .yb-tag-suggestions-popup  scrollbox {
+    max-height: 100px !important;
+}
+*/
+tagautocomplete .yb-tag-suggestions-popup .autorepeatbutton-up,
+tagautocomplete .yb-tag-suggestions-popup .autorepeatbutton-down {
+  -moz-binding: none !important;
+  margin: 0px !important;
+  padding: 0px !important;
+
+}
+
+tagautocomplete .yb-tag-suggestions-popup > .popup-internal-box {
+  margin: 0px !important;
+  padding: 0px !important;
+}
+
+/* main browser */
+
+/* The following is to fix the alignment of iconic menuitems in windows */
+#ybookmarks_menu_popup menuitem, #ybookmarks_menu_popup menu {
+  padding-left: 4px;
+}
+#ybookmarks_menu_popup menuitem.menuitem-iconic, #ybookmarks_menu_popup menu.menu-iconic {
+  padding-left: 0px;
+}
+
+
+menu[parent="menuitemheader"] .menu-right[_moz-menuactive="true"] {
+  list-style-image: url("chrome://global/skin/menu/Menu-arrow.png");
+}
+
+
+#del-button-delicious {
+/*  list-style-image: url("chrome://ybookmarks/skin/del-sidebar.png"); */
+	list-style-image: url("chrome://ybookmarks/skin/bookmarksButtonBig.png");
+	  -moz-image-region: rect(24px 24px 48px 0px);
+}
+
+#del-button-delicious:hover {
+  -moz-image-region: rect(0px 24px 24px 0px);  
+}
+
+#del-button-delicious[disabled="true"] { 
+  -moz-image-region: rect(48px 24px 72px 0px);
+}
+
+
+#del-button-delicious-page{
+/*  list-style-image: url("chrome://ybookmarks/skin/mydelicious.png"); */
+	list-style-image: url("chrome://ybookmarks/skin/deliciousButtonBig.png");
+	  -moz-image-region: rect(24px 24px 48px 0px);
+}
+
+#del-button-delicious-page:hover {
+  -moz-image-region: rect(0px 24px 24px 0px);  
+}
+
+#del-button-delicious-page[disabled="true"] { 
+  -moz-image-region: rect(48px 24px 72px 0px);
+}
+
+toolbar[iconsize="small"] #del-button-delicious-page {
+	list-style-image: url("chrome://ybookmarks/skin/deliciousButtonSmall.png");
+  -moz-image-region: rect(0px 16px 16px 0px);
+}
+toolbar[iconsize="small"] #del-button-delicious-page:hover {
+  -moz-image-region: rect(16px 16px 32px 0px);
+}
+toolbar[iconsize="small"] #del-button-delicious-page[disabled="true"] {
+  -moz-image-region: rect(32px 16px 48px 0px);
+}
+
+
+
+#del-button-tagPage { 
+/*  list-style-image: url("chrome://ybookmarks/skin/tagdelicious.png"); */
+	list-style-image: url("chrome://ybookmarks/skin/tagButtonBig.png");
+  -moz-image-region: rect(0px 24px 24px 0px);  
+}
+
+#del-button-tagPage:hover {
+  -moz-image-region: rect(24px 24px 48px 0px);
+}
+
+#del-button-tagPage[disabled="true"] { 
+  -moz-image-region: rect(48px 24px 72px 0px);
+}
+
+/* Large icons */
+
+.toolbar-tag-effect[del="true"] {
+  -moz-image-region: rect(24px 24px 48px 0px) !important;	
+}
+
+/* small icons */
+
+.toolbar-tag-effect-small[del="true"] {
+  -moz-image-region: rect(16px 16px 32px 0px) !important;	
+}
+
+toolbar[iconsize="small"] #del-button-tagPage {
+  list-style-image: url("chrome://ybookmarks/skin/tagButtonSmall.png");
+  -moz-image-region: rect(0px 16px 16px 0px);
+}
+toolbar[iconsize="small"] #del-button-tagPage:hover {
+  -moz-image-region: rect(16px 16px 32px 0px);
+}
+toolbar[iconsize="small"] #del-button-tagPage[disabled="true"] {
+  -moz-image-region: rect(32px 16px 48px 0px);
+}
+
+.provider-menu-icon {
+  list-style-image: url("chrome://ybookmarks/skin/deliciousSmall12X12.gif");
+}
+
+.provider-menubar-icon {
+  list-style-image: url("chrome://ybookmarks/skin/deliciousSingleButton.png");
+}
+
+.menubar-icon {
+  list-style-image: url("chrome://ybookmarks/skin/blank.png");
+}
+
+menu.yb-tag-item {
+  min-width: 0;
+  max-width: 26em;
+}
+
+.yb-tag-item > .menu-iconic-left {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.yb-tag-item > .menu-iconic-left > .menu-iconic-icon {
+  width: 16px;
+  height: 16px;
+  -moz-padding-start: 0px;
+}
+
+.yb-tag-item  {
+  /*list-style-image: url("chrome://ybookmarks/skin/tag.gif") !important;*/
+  list-style-image: url("chrome://ybookmarks/skin/tagIcon.png") !important;
+  -moz-image-region: rect(0px, 16px, 16px, 0px) !important;
+}
+
+.yb-tag-item-reserved  {
+  list-style-image: url("chrome://global/skin/icons/folder-item.png") !important;
+  -moz-image-region: rect(0px, 32px, 16px, 16px) !important;
+}
+.yb-tag-item-reserved[mac=true]  {
+  list-style-image: url("chrome://global/skin/tree/folder.png") !important;
+  -moz-image-region: rect(0px, 16px, 16px, 0px) !important;
+}
+
+.yb-bundle-item {
+  /*list-style-image: url("chrome://ybookmarks/skin/icon-bundles.gif") !important;*/
+  list-style-image: url("chrome://ybookmarks/skin/bundleIcon.png") !important;
+  -moz-image-region: rect(0px, 16px, 16px, 0px) !important;
+}
+
+/* sidebar */
+
+treechildren::-moz-tree-image(Name) {   
+   width:16px;   
+   height:16px;  
+   padding-right: 3px; 
+} 
+
+treechildren::-moz-tree-image(Name, container, livemark) {
+  list-style-image: url(chrome://browser/skin/page-livemarks.png) !important;
+  -moz-image-region: rect(0px, 16px, 16px, 0px) !important;
+}
+
+treechildren::-moz-tree-image(Name, container) {
+  /*list-style-image: url("chrome://ybookmarks/skin/tag.gif");*/
+  list-style-image: url("chrome://ybookmarks/skin/tagIcon.png");
+  -moz-image-region: rect(0px, 16px, 16px, 0px);
+}
+
+treechildren::-moz-tree-image(tag) {
+  /*list-style-image: url("chrome://ybookmarks/skin/tag.gif") !important; */
+  list-style-image: url("chrome://ybookmarks/skin/tagIcon.png") !important;
+  -moz-image-region: rect(0px, 16px, 16px, 0px) !important;
+}
+
+tree#ybbookmarks-tree-tags treechildren::-moz-tree-image(Name) {
+  /*list-style-image: url("chrome://ybookmarks/skin/tag.gif") !important; */
+  list-style-image: url("chrome://ybookmarks/skin/tagIcon.png") !important;
+  -moz-image-region: rect(0px, 16px, 16px, 0px) !important;
+}
+
+tree#ybbookmarks-tree-bookmarks treechildren::-moz-tree-image(hasDesc) {
+  list-style-image: url("chrome://ybookmarks/skin/note.gif") !important; 
+}
+
+
+.ybSidebarTagNum {
+	text-align : right;
+	margin-right : 1em;
+	min-width : 40px;
+}
+
+.ybSidebarNotes {
+	text-align : right;
+	/*margin-right : 1em;*/
+	min-width : 40px;
+	max-width : 40px;
+}
+
+.ysidebar-bottom-status {
+    margin: 0px; 
+    font-size: 90%; 
+    padding-bottom: 1px;
+    padding-top: 0px;
+}
+
+.ysidebar-textlink {
+  color            : blue;
+  border           : 1px solid transparent;
+}
+
+.ysidebar-textlink[linktype="standard"] {
+  text-decoration  : underline;
+}
+
+  
+.ysidebar-textlink:hover {
+  cursor           : pointer;
+  text-decoration  : underline;
+} 
+
+.ybsidebar-noSearchResultsText, .ybsidebar-searchText, .ybsidebar-importingText {
+  color : grey;
+}
+
+.ybsidebar-info-container {
+  padding : 5px;
+}
+
+.ybsidebar-info-image { 
+  list-style-image: url("chrome://ybookmarks/skin/deliciousButtonSmall.png");
+  -moz-image-region: rect(0px, 16px, 16px, 0px) !important;  
+}
+
+.ybsidebar-info-image:hover { 
+  cursor           : pointer; 
+}
+
+
+.ysidebar-label-container {
+  padding : 3px 0px 3px 0px;
+}
+
+.ybsidebar-tree-container{
+  min-height: 335px;
+}
+
+#ybsidebar-popup { 
+
+  min-height: 400px;
+  background-color: -moz-dialog;
+  border-top-width: 1px;
+  border-right-width: 1px;
+  border-bottom-width: 1px;
+  border-left-width: 1px;
+  border-top-style: solid;
+  border-right-style: solid;
+  border-bottom-style: solid;
+  border-left-style: solid;
+  border-top-color: threedshadow;
+  border-right-color: threedshadow;
+  border-bottom-color: threedshadow;
+  border-left-color: threedshadow;
+}
+
+.ybsidebar-search {
+  padding: 0px !important;
+  margin: 0px !important;
+}
+
+.ybsidebar-search1 {
+    margin-top: 0px;
+    height: 22px;
+    width: 11px;
+}
+
+.ybsidebar-search2 {
+     height: 20px !important;
+     margin: 4px 2px 4px 0px;
+     -moz-user-focus: normal !important;
+     -moz-appearance: none;
+     -moz-box-align: center !important;
+     border-style: none;
+     color: black !important;
+     outline: solid 1px #3274D0 !important;
+     background-color: white !important;     
+}
+
+.ybsidebar-search2[status="inactive"] {     
+     background-color: #d9d9d9 !important;
+     color: #666666 !important;
+}
+
+.ybsidebar-search2[status="focus"] {     
+     background-color: white !important;
+     color: black !important;
+}
+
+.ybsidebar-search-reset-style-searchCold {
+  -moz-box-flex: 1; /* expand to fill toolbar height */
+  list-style-image: url("chrome://ybookmarks/skin/searchCold.png");
+  width: 24px !important;
+  margin-right: 4px !important;  
+}  
+
+.ybsidebar-search-reset-style-searchHot {
+  -moz-box-flex: 1; /* expand to fill toolbar height */
+  list-style-image: url("chrome://ybookmarks/skin/searchHot.png");
+  width: 24px !important;
+  margin-right: 4px !important;  
+}
+
+.ybsidebar-search-reset-style-clearCold {
+  -moz-box-flex: 1; /* expand to fill toolbar height */
+  list-style-image: url("chrome://ybookmarks/skin/clearCold.png");
+  width: 24px !important;
+  margin-right: 4px !important;  
+}
+
+.ybsidebar-search-reset-style-clearHot {
+  -moz-box-flex: 1; /* expand to fill toolbar height */
+  list-style-image: url("chrome://ybookmarks/skin/clearHot.png");
+  width: 24px !important;
+  margin-right: 4px !important;  
+}
+
+.ybsidebar-no-search-result-box {
+
+  padding: 4px 0px 0px 6px;
+  margin: 0 !important;
+  border: none !important;
+  -moz-appearance: listbox;
+}
+
+.ybsidebar-spacer {
+  
+  height: 5px;
+}
+
+.ybsidebar-showSidebarButton {
+  -moz-appearance: none;
+  border: none !important; 
+  list-style-image: url("chrome://ybookmarks/skin/showSidebar.gif");
+}
+
+.ybsidebar-showSidebarButton:hover {
+}
+.ybsidebar-showSidebarButton[disabled="true"] {
+}
+
+
+/* toolbar */
+/*
+#ybToolbar-bookmarksview-nonbookmarks {
+   background-color:blue !important; 
+  margin: 0px !important;    
+}*/
+
+
+#ybToolbar-options {
+  visibility: visible !important;
+  list-style-image: url("chrome://ybookmarks/skin/deliciousButtonSmall.png");
+  -moz-image-region: rect(0px 16px 16px 0px);
+  min-width:  16px;  
+  margin-left: 4px;
+}
+
+#ybToolbar-options > .toolbarbutton-menu-dropmarker {
+    margin-left: 1px !important;
+    margin-right: 0px !important;
+}
+
+#ybToolbar-options > .toolbarbutton-icon {
+  display: -moz-box !important;
+  margin-left: 2px !important;
+  margin-right: 2px !important;
+}
+
+#ybToolbar-options > .toolbarbutton-text {
+  min-width:  0px;
+  margin:  0px;
+}
+
+#ybToolbar-options:hover {
+  -moz-image-region: rect(16px 16px 32px 0px);
+}
+
+toolbar[iconsize="small"] #del-button-delicious {
+  list-style-image: url("chrome://ybookmarks/skin/bookmarksButtonSmall.png");
+  -moz-image-region: rect(0px 16px 16px 0px);
+}
+toolbar[iconsize="small"] #del-button-delicious:hover {
+  -moz-image-region: rect(16px 16px 32px 0px);
+}
+toolbar[iconsize="small"] #del-button-delicious[disabled="true"] {
+  -moz-image-region: rect(32px 16px 48px 0px);
+}
+
+#ybToolbar-selection {
+  margin: 0px !important;
+}
+
+#ybToolbar-bookmarksview-bookmarks {
+  min-width:  0px !important;
+}
+
+#ybToolbar-tagsview {
+  min-width:  0px !important;
+}
+
+#ybToolbar-tagsview-tags {
+  min-width:  0px !important;
+}
+
+#ybToolbar-bundlesview {
+  min-width:  0px !important;
+}
+
+#ybToolbar-bundlesview-bundles { 
+  min-width:  0px !important;
+}
+
+ #ybToolbar-bundlesview-nonbundles { 
+  min-width: 0px !important;  
+}
+
+#ybToolbar-bundles-options {
+  margin-left: 0px !important;
+  padding-left: 0px !important;
+  padding-top: 0px !important;
+  padding-bottom: 0px !important;
+  list-style-image: url("chrome://ybookmarks/skin/bundles-reload.png");
+  -moz-image-region: rect(0px 16px 16px 0px);  
+}
+
+#ybToolbar-bundles-options:hover {
+  -moz-image-region: rect(16px 16px 32px 0px);
+}
+
+#ybToolbar-bundles-options:active {
+  -moz-image-region: rect(32px 16px 48px 0px);
+}
+
+#ybToolbar-bundles-options > .toolbarbutton-menubutton-button {
+  padding-top: 3px;
+  padding-bottom: 0px;
+}
+
+#ybToolbar-bundles-options > .toolbarbutton-menubutton-dropmarker {
+  margin-left: 0px !important;
+  margin-right: 3px !important;
+}
+
+#ybToolbar-overflow-padder {
+  min-width:  0px !important;
+  margin: 0px !important;
+}
+
+#ybToolbar-chevron {
+  min-width: 0px !important;
+  margin-left: 0px !important;
+  margin-right: 0px !important;
+  padding-left: 3px !important;
+  padding-right: 0px !important;
+  border:  none !important;
+}
+
+#ybToolbar-chevron > .toolbarbutton-text,
+#ybToolbar-chevron > .toolbarbutton-menu-dropmarker {
+  min-width: 0px !important;
+  margin: 0px !important;
+  padding-left: 0px !important;
+  padding-right: 0px !important;
+  border:  none !important;
+}
+
+
+toolbarpaletteitem[place="toolbar"] .yb-tag-item,  toolbarpaletteitem[place="toolbar"] .yb-toolbar-button {
+   visibility: hidden;
+}
+
+/* prevent mode=icons/text from hiding labels and icons */
+.yb-toolbar-button > .toolbarbutton-icon, .yb-toolbar-button > .toolbarbutton-text {
+  display:  -moz-box !important;
+}
+#ybToolbar-toolbar > .toolbarbutton-icon, #ybToolbar-toolbar > .toolbarbutton-text {
+  display:  -moz-box !important;
+}
+
+toolbarbutton.yb-tag-item > .toolbarbutton-icon, toolbarbutton.yb-tag-item > .toolbarbutton-text,
+toolbarbutton.yb-bundle-item > .toolbarbutton-icon, toolbarbutton.yb-bundle-item > .toolbarbutton-text {
+  display:  -moz-box !important;
+}
+
+#ybToolbar-selection {
+  /*list-style-image: url("chrome://ybookmarks/skin/tag.gif") !important;*/
+  list-style-image: url("chrome://ybookmarks/skin/tagIcon.png") !important;
+  -moz-image-region: rect(0px, 16px, 16px, 0px) !important;  
+}
+
+#ybToolbar-selection > .toolbarbutton-text {
+  display: -moz-box !important;
+}
+
+toolbarbutton.yb-tag-item {
+  margin-left:  0px !important;
+  margin-right:  0px !important;
+}
+
+toolbarbutton.bookmark-item {
+  margin-left:  0px !important;
+  margin-right:  0px !important;
+}
+
+#ybToolbar-toolbar toolbarbutton[container="true"] > .toolbarbutton-menu-dropmarker {
+    margin-left: 3px !important;
+}
+
+#ybToolbar-toolbar toolbarbutton[livemark="true"] > .toolbarbutton-menu-dropmarker {
+  margin-left: 0px !important;
+}
+
+#ybToolbar-selection-menulist {
+  -moz-appearance: toolbarbutton;
+}
+
+#ybTagsToolbarEditor {
+  width: 250px;
+  padding: 5px 5px 5px 5px;
+  /*-moz-binding: url('chrome://ybookmarks/content/tagAutoComplete.xml#tagAutoComplete');*/
+}
+
+button.ybTagsToolbarEditor-image {
+
+  -moz-appearance: none;
+  -moz-user-focus: ignore;
+  margin: 0px !important;
+  border: none !important;
+  padding: 1px !important;
+  width: 13px !important;
+  min-width: 0;
+  background-color: transparent;
+}
+
+button.ybBundleEditor-image {
+
+  -moz-appearance: none;
+  -moz-user-focus: ignore;
+  margin: 0px !important;
+  border: none !important;
+  padding: 1px !important;
+  width: 13px !important;
+  min-width: 0;
+  background-color: transparent;
+}
+
+
+menuitem.yb_menuitem_noicon {
+  list-style-image:  none !important;
+}
+toolbarbutton.bookmark-item[collapsed] { /* cmyang: 2006-09-27 for some reason, collapsed still has width 2 */
+  width:  0px !important;
+}
+
+#yb-import-progress-tour-link, #yb-import-progress-tour-desc {
+  margin: 0px !important;
+}
+
+.left-padded-menuitem {
+  padding-left: 4px;
+}
+
+/* Status Bar */
+#yb-statusbar-infopanel-icon {
+  list-style-image: url("chrome://ybookmarks/skin/mydelicious-small.png");
+  -moz-image-region: rect(0px 16px 16px 0px);  
+}
+
+#yb-statusbar-infopanel-icon:hover {
+  -moz-image-region: rect(16px 16px 32px 0px);
+}
+
+#yb-statusbar-infopanel-tooltip-notshared {
+  color: red;  
+}
+
+/* Upgrade Alert*/
+#yb-upgrade-alert spacer.radio {
+  width: 5em;
+}
+
+#yb-upgrade-alert spacer.line {
+  height: 1em;
+}
+
+.yb-noMyleft {
+  margin-left: 0px !important;
+  padding-left: 0px !important;
+}
+
+.yb-NoMargin {
+  border: 0px !important;
+  padding: 0px !important;
+  margin: 0px !important;	
+}
+
+.yb-pin-button {
+  list-style-image: url("chrome://ybookmarks/skin/pinInCold.png") !important;
+  margin-right: 5px;	
+}
+
+.yb-pin-button:hover {
+  list-style-image: url("chrome://ybookmarks/skin/pinInHot.png") !important; 
+}
+
+.yb-nopin-button {
+  list-style-image: url("chrome://ybookmarks/skin/pinOutCold.png") !important;
+  margin-right: 5px; 
+}
+
+.yb-nopin-button:hover {
+  list-style-image: url("chrome://ybookmarks/skin/pinOutHot.png") !important;
+}
+
+.yb-statusbaricon-network {
+  list-style-image: url("chrome://ybookmarks/skin/networkInActive.png") !important; 
+}
+
+.yb-statusbaricon-network[status="active"] {	
+  list-style-image: url("chrome://ybookmarks/skin/networkActive.png") !important; 
+}
+
+.yb-statusbaricon-network[status="inactive"] {	
+  list-style-image: url("chrome://ybookmarks/skin/networkInActive.png") !important; 
+}
+
+popup {
+  border: 3px solid transparent;
+  -moz-border-top-colors   : ThreeDLightShadow ThreeDHighlight ThreeDFace;
+  -moz-border-left-colors  : ThreeDLightShadow ThreeDHighlight ThreeDFace;
+  -moz-border-right-colors : ThreeDDarkShadow  ThreeDShadow    ThreeDFace;
+  -moz-border-bottom-colors: ThreeDDarkShadow  ThreeDShadow    ThreeDFace;
+  padding: 0px;
+  min-width: 1px;
+  background: Menu;
+}

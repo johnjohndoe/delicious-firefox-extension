@@ -1,0 +1,13 @@
+toolbarbutton#ybImport {
+  list-style-image: url("chrome://ybookmarks/skin/delicious-import.gif") !important;
+}
+
+toolbarbutton#ybImportFF3 {
+  /*list-style-image: url("chrome://browser/skin/wrench.png");*/    
+}
+
+
+/*toolbarbutton#ybImport:hover {
+}
+toolbarbutton#ybImport:active {
+}*/

@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+
+<!DOCTYPE dialog SYSTEM "chrome://ybookmarks/locale/serverError.dtd">
+
+<dialog
+   id="dlg_ServerError" 
+   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+   title="&serverError.dialog.title;"
+   buttons="accept"
+   ondialogaccept="YBserverError.accept()"
+   width="400"
+   persist="screenX screenY"
+   onload="YBserverError.init()">
+  
+   <stringbundleset>
+    <stringbundle id="serverErrorStringBundle" src="chrome://ybookmarks/locale/serverError.properties"/>
+   </stringbundleset>
+   
+  <script src="chrome://ybookmarks/content/serverError.js"
+          type="application/x-javascript" />
+  <script src="chrome://ybookmarks/content/yDebug.js"
+          type="application/x-javascript" />
+
+  <description id="serverError" style="font-weight: bold;"></description>
+  <description id="errorMessage"></description>
+
+</dialog>

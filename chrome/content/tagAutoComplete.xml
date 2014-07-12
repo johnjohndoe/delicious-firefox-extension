@@ -1,0 +1,588 @@
+<?xml version="1.0"?>
+
+<bindings xmlns="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <binding id="tagAutoComplete">
+      <resources>
+        <script src="chrome://ybookmarks/content/ybookmarksUtils.js" type="application/x-javascript" />
+      </resources>
+      		
+		<handlers>
+	    <handler event="focus" phase="capturing">
+	      <![CDATA[
+	        if (!this.hasAttribute('focused')) {
+	          this.setAttribute('focused','true');
+	        }
+	      ]]>
+	    </handler>
+	    
+	    <handler event="blur" phase="capturing">
+	      <![CDATA[
+				  this.removeAttribute('focused');
+					this.hideTagSuggestions();
+	      ]]>
+	    </handler>
+	
+			<handler event="keypress">
+				<![CDATA[
+			  switch(event.keyCode) {
+           case event.DOM_VK_DOWN:
+           case event.DOM_VK_UP:
+             event.preventDefault();
+             break;
+           case event.DOM_VK_ESCAPE:  //esc
+             if (this._areSuggestionsVisible()) {
+               event.preventDefault();         
+             }
+             break;
+           case event.DOM_VK_RETURN:  //enter
+             if (this.isSuggestionSelected()) {
+               event.preventDefault();         
+             }      
+             break;
+           case event.DOM_VK_TAB:
+             if (this._areSuggestionsVisible()) {
+               event.preventDefault();         
+             } else if(this._attachedSendBoxID) { //Only in Add bkmrk dialog.
+               ybAddBkShare.checkForRecipients(false);  
+             }
+             break;
+           default: 
+             this._lastEditTags = event.target.value; 
+         }
+			 ]]>
+			</handler>
+		
+			<handler event="keyup">
+				<![CDATA[
+				switch (event.keyCode) {
+          case event.DOM_VK_DOWN:
+          case event.DOM_VK_UP:
+            event.preventDefault();
+            break;
+          case event.DOM_VK_ESCAPE:  //esc
+            if (this._areSuggestionsVisible()) {
+						this.hideTagSuggestions();
+              event.preventDefault();
+            }
+            break;
+          case event.DOM_VK_RETURN: //enter
+            if (this.isSuggestionSelected()) {
+              this.completeTag();
+              event.preventDefault();         
+            }      
+            break;
+    			case event.DOM_VK_TAB:
+					if (this._areSuggestionsVisible()) {
+						if (this._tagSuggestionsPicked < 0) {
+							this.selectTagSuggestion(0);
+						}
+					  this.completeTag();
+                      event.preventDefault();
+					}
+					break;
+          case event.DOM_VK_END:
+          case event.DOM_VK_HOME:
+          case event.DOM_VK_RIGHT:
+          case event.DOM_VK_LEFT:
+          case event.DOM_VK_SPACE:
+            this.hideTagSuggestions();
+            break;
+          default:
+            this.updateTagSuggestions(event.target);
+        }
+				]]>
+			</handler>
+			<handler event="keydown">
+				<![CDATA[
+				if (this._areSuggestionsVisible()) {
+           switch(event.keyCode) {
+             case event.DOM_VK_DOWN:
+               this.selectTagSuggestion((this._tagSuggestionsPicked + 1) % this._tagSuggestionsLength);
+               this.scrollTagSuggestions();
+               event.preventDefault();
+               break;
+             case event.DOM_VK_UP:
+               this.selectTagSuggestion((this._tagSuggestionsPicked == 0 || this._tagSuggestionsPicked == -1) ? this._tagSuggestionsLength - 1 : this._tagSuggestionsPicked - 1);
+               this.scrollTagSuggestions();
+               event.preventDefault();
+               break;
+           }
+         }
+         ]]>
+			</handler>
+			
+	  </handlers>
+
+    <implementation>
+      <field name="_tagInputBox" />
+      <field name="_lastEditTags" />
+      <field name="_currentTagText" />
+      <field name="_currentTagIndex">0</field>
+      <field name="_tagsTextboxWidth">0</field>
+      <field name="_tagSuggestionsPicked">-1</field>
+      <field name="_tagSuggestionsLength">0</field>
+      <field name="_tagInputTimeout">250</field>
+      <field name="_tagInputTimer" />
+      <field name="_lastTagSuggestion" />
+      <field name="_suggestionsPopupVisible">false</field>
+
+			<property name="areSuggestionsVisible" onget="return this._areSuggestionsVisible();" />
+							
+			<property name="value">
+				<setter>
+	        <![CDATA[
+					this._getTagTextBox().value = val;
+					]]>
+				</setter>
+				<getter>
+	        <![CDATA[
+						var input = this._getTagTextBox();
+						if (!input.value) { 
+							input.value= ""; 
+						}
+						return input.value;
+					]]>
+				</getter>
+			</property>
+
+		<constructor>
+        <![CDATA[
+          try {
+					this._tagInputBox = document.getAnonymousElementByAttribute(this, "anonid", "ybTagAutoComplete-tags");
+     			
+					//window.addEventListener("click", this.onClickListener, false); // cmyang: 2006-12-19 do we need this?
+					
+					if (!this.getAttribute("popupmaxheight")) {
+						this.setAttribute("popupmaxheight", 100);
+					}
+					//Special case in Addbookmark dialog.
+					this._attachedSendBoxID = this.getAttribute('attachedSendBoxID');
+        	} catch (e) { yDebug.print("constructor: " +e);}
+					]]>
+      </constructor>
+
+			<method name="focus">
+        <body><![CDATA[
+					this._getTagTextBox().focus();
+				]]></body>
+			</method>
+
+			<method name="_getTagSuggestions">
+        <body><![CDATA[
+					return document.getAnonymousElementByAttribute(this, "anonid", "ybTagAutoComplete-suggestions");
+				]]></body>
+			</method>
+			
+			<method name="_getTagTextBox">
+        <body><![CDATA[
+					return document.getAnonymousElementByAttribute(this, "anonid", "ybTagAutoComplete-tags");
+				]]></body>
+			</method>
+	
+			<method name="_getTagSuggestionsPopup">
+        <body><![CDATA[
+					return document.getAnonymousElementByAttribute(this, "anonid", "ybTagAutoComplete-popup");
+				]]></body>
+			</method>
+	
+			<method name="_areSuggestionsVisible">
+        <body><![CDATA[
+					return this._suggestionsPopupVisible;
+				]]></body>
+			</method>
+		
+			<method name="_getPopupMaxHeight">
+        <body><![CDATA[
+					return this.getAttribute("popupmaxheight");
+				]]></body>
+			</method>
+		
+      <method name="isSuggestionSelected">
+        <body><![CDATA[
+          if (this._areSuggestionsVisible() && this._tagSuggestionsPicked >= 0) {
+            return true;
+          }
+          return false;
+        ]]></body>
+      </method>
+
+      <method name="scrollTagSuggestions">
+        <body><![CDATA[
+          var suggestionBox = this._getTagSuggestions();
+          var row = suggestionBox.firstChild;
+    
+          var scrollTo = row.boxObject.height * this._tagSuggestionsPicked;
+          var scrollBoxObj = suggestionBox.boxObject.
+          QueryInterface(Components.interfaces.nsIScrollBoxObject);
+          var x = {}, y = {};
+    
+          scrollBoxObj.getPosition(x, y);    
+          scrollBoxObj.scrollTo(x.value, scrollTo);
+        ]]></body>
+      </method>
+
+      <method name="selectTagSuggestion">
+        <parameter name="index" />
+        <body><![CDATA[
+          if (this._tagSuggestionsLength == 1) index = 0;
+          var suggestionBox = this._getTagSuggestions();
+          if (this._tagSuggestionsPicked > -1 && suggestionBox.childNodes[this._tagSuggestionsPicked])
+            suggestionBox.childNodes[this._tagSuggestionsPicked].removeAttribute("highlight");
+          this._tagSuggestionsPicked = index;
+      
+         if (this._tagSuggestionsPicked > -1)
+           suggestionBox.childNodes[this._tagSuggestionsPicked].setAttribute("highlight", "true");
+        ]]></body>
+      </method>
+
+
+      <method name="updateTagSuggestions">
+        <parameter name="target" />
+        <body><![CDATA[
+          try {
+					if (this._tagInputTimer) {
+            clearTimeout(this._tagInputTimer);
+          }
+
+          if(!this.getCurrentTag() || !this._currentTagIndex) { 
+            this.hideTagSuggestions(); 
+						return; 
+          }
+
+					var func = function(target, me) { 
+            me._updateTagSuggestions( target.value );
+          };
+
+          this._tagInputTimer = setTimeout(func, this._tagInputTimeout, target, this);
+					} catch (e) { yDebug.print(e);}
+        ]]></body>
+      </method>
+
+      <method name="_updateTagSuggestions">
+        <parameter name="input" />
+        <body>
+                    <![CDATA[
+					try {
+          if (!this.getCurrentTag() || !this._currentTagIndex) { 
+            this.hideTagSuggestions(); 
+						return; 
+          }
+       
+          var gXUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";       
+       
+          var tags = input.split(/\s */);
+       
+          var currentInput = tags[this._currentTagIndex];
+          if (currentInput && 
+              this._lastTagSuggestionLength > 0 && 
+              currentInput.length >= this._lastTagSuggestionLength && 
+              currentInput.indexOf(this._lastTagSuggestion) == 0) {
+         
+            var suggestionBox = this._getTagSuggestions();
+            var element = suggestionBox.firstChild;
+            var nElement, tag;
+            while (element) {
+              nElement = element;
+              element = element.nextSibling;
+              tag = nElement.getAttribute("tag");
+              if (tag.indexOf(currentInput) == -1) {
+                suggestionBox.removeChild(nElement);
+              }
+            }
+
+            this._lastTagSuggestion = currentInput;
+          }
+          else {
+                  
+            var sqliteStore = Components.classes["@yahoo.com/nsYDelLocalStore;1"].
+					  getService(Components.interfaces.nsIYDelLocalStore);
+ 
+            var suggestions = sqliteStore.getTagSuggestions(currentInput, false);
+       
+            var suggestionBox = this._getTagSuggestions();
+            var suggestion, tag, count;
+            var row, text;
+       
+            //remove everything in type down
+            while (suggestionBox.firstChild) {
+              suggestionBox.removeChild(suggestionBox.firstChild);
+            }
+
+            //add stuff in
+            outer: for (var i = 0; i < suggestions.length; i++) {
+
+           		suggestion = suggestions.queryElementAt(i, Components.interfaces.nsIWritablePropertyBag);
+		          tag = suggestion.getProperty("tag");
+	            count = suggestion.getProperty("count");
+        
+	            //do not show suggestion tag which is already in the tags textbox
+	            var inputTagArray = this.getUserInputTags("array");
+	            for (t in inputTagArray) {
+	              if (tag == inputTagArray[t] && tag != currentInput) {
+	                continue outer;
+	              }
+	            }
+
+	            //row = document.createElementNS(gXUL_NS, "row");
+	            text = document.createElementNS(gXUL_NS, "text");
+	            text.setAttribute("class", "suggestion-tag");
+	            text.setAttribute("value", tag + " (" + count + ")");
+	            text.setAttribute("tag", tag);
+	            text.addEventListener("click", this.completeTag, false); 
+
+	            suggestionBox.appendChild(text);
+	          }
+        
+         		if (currentInput) {
+			    		this._lastTagSuggestion = currentInput;
+		        } else {
+		            this._lastTagSuggestion = "";
+						}
+         }
+       
+          this._tagSuggestionsLength = suggestionBox.childNodes.length;
+       
+          if (suggestionBox.childNodes.length > 0) {       
+            this.showTagSuggestions();
+          } else {
+            this.hideTagSuggestions();    
+          }
+} catch(e) { yDebug.print("_updateTagSuggestions(): " + e);}
+        ]]></body>
+      </method>
+
+      <method name="showTagSuggestions">
+        <body><![CDATA[
+          try {                      
+          
+				var suggestionBox = this._getTagSuggestions();       
+     			var suggestionPopup = this._getTagSuggestionsPopup();       
+				var inputBox = this._getTagTextBox();
+				suggestionBox.style.overflow = "-moz-scrollbars-none";
+		  if(ybookmarksUtils.getFFMajorVersion() > 2) {
+          	var posY = this._tagInputBox.boxObject.screenY + this._tagInputBox.boxObject.height - 3; 
+          }
+          else {
+          	var posY = document.documentElement.boxObject.y + this._tagInputBox.boxObject.y + this._tagInputBox.boxObject.height - 3; 
+          }
+      					 
+          //set the position X of the suggestion box
+          var pos = 0;
+          var tags = this.getUserInputTags("array");
+     
+          for(var i = 0; i < this._currentTagIndex; i++) {
+            pos += tags[i].length + 1;
+          }     
+          var text = this.getUserInputTags("string").substr(0, pos);
+
+          var invisibleTags = document.getAnonymousElementByAttribute(this, "anonid", "ybTagAutoComplete-invisible-tags");
+          var invisibleBox = document.getAnonymousElementByAttribute(this, "anonid", "ybTagAutoComplete-invisible-box");
+          invisibleTags.value = text;
+          invisibleBox.hidden = false;
+          var invisibleTagsWidth = invisibleTags.boxObject.width;
+          invisibleBox.hidden = true;
+          invisibleTags.value = "";
+         
+          var offsetX = 2;
+          if ((invisibleTagsWidth + suggestionBox.boxObject.width) > this._tagInputBox.boxObject.width) {
+            offsetX += this._tagInputBox.boxObject.width - suggestionBox.boxObject.width;
+          } else {
+            offsetX += invisibleTagsWidth;
+          }
+         
+          if(ybookmarksUtils.getFFMajorVersion() > 2) {
+            var posX = this._tagInputBox.boxObject.screenX + offsetX;
+          }
+          else {
+            var posX = this._tagInputBox.boxObject.x + offsetX;
+          }
+
+					document.popupNode = document.documentElement; // needed for some bug
+					suggestionPopup.showPopup(document.documentElement, posX, posY, "popup");
+					this._suggestionsPopupVisible = true;
+					//figure out if overloaded
+					if (suggestionBox.boxObject.height >= this._getPopupMaxHeight()) {
+						suggestionBox.style.overflow = "-moz-scrollbars-vertical";
+						yDebug.print("added bars");
+					}
+					
+					} catch (e) { yDebug.print("Exception from tag autocomplete: "+e, YB_LOG_MESSAGE);}
+        ]]></body>
+      </method>
+
+      <method name="hideTagSuggestions">
+        <body><![CDATA[
+	
+     			var suggestionPopup = this._getTagSuggestionsPopup();       
+					suggestionPopup.hidePopup();
+					this._suggestionsPopupVisible = false;
+	        this._tagSuggestionsPicked = -1;
+          this._tagSuggestionsLength = 0;
+     
+          if (this._tagInputTimer) {
+            clearTimeout(this._tagInputTimer);
+            this._tagInputTimer = null;
+          }  
+        ]]></body>
+      </method>
+
+      <method name="getElementById">
+        <parameter name="format" />
+        <body><![CDATA[
+          var tags = this._tagInputBox.value;
+          if (format == "string") {
+            return tags;
+          }
+          else {
+            var tagArray = tags.split(/\s */);
+            return tagArray;
+          }  
+        ]]></body>
+      </method>
+
+      <method name="setUserInputTags">
+        <parameter name="inputTagArray" />
+        <body><![CDATA[
+          this._tagInputBox.value = inputTagArray.join(" ") + " ";
+          //Special case in Addbookmark dialog.
+          if(this._attachedSendBoxID) {
+          	ybAddBkShare.checkForRecipients();
+          }
+        ]]></body>
+      </method>
+
+      <method name="completeTag">
+        <parameter name="event" />
+        <body><![CDATA[
+					var boundElt;
+  				var selectedTag = "";
+
+          if (event) {
+					   selectedTag = event.target.getAttribute("tag");
+						 boundElt = event.target.parentNode.parentNode.parentNode.parentNode;	
+					} else {
+            var suggestionBox = this._getTagSuggestions();
+            selectedTag = suggestionBox.childNodes[this._tagSuggestionsPicked].getAttribute("tag");
+					  boundElt = this; 
+        	}
+					
+			    var inputTagArray = boundElt.getUserInputTags("array");
+     
+          if (boundElt._currentTagIndex) {
+            var curTag = inputTagArray[ boundElt._currentTagIndex ];
+            var plusIndex = curTag.lastIndexOf( '+' );
+            if( plusIndex > -1 ) {    
+              // we need to add the tag at the end of existing string
+              selectedTag = curTag.substr( 0, plusIndex + 1 ) + selectedTag; 
+            }
+            inputTagArray[ boundElt._currentTagIndex ] = selectedTag;   
+          }
+     
+          boundElt.setUserInputTags( inputTagArray );
+          boundElt.hideTagSuggestions();
+        ]]></body>
+      </method>
+
+      <method name="getCurrentTag">
+        <parameter name="" />
+        <body>
+            <![CDATA[
+          var tags = this.getUserInputTags("string");
+          if (tags == this._lastEditTags) return true;
+          if (tags == "") return false;
+     
+          this._currentTagText = "";
+          this._currentTagIndex = 0;
+          
+          //var tagArray = tags.toLowerCase().split(/\s */);
+          var tagArray = tags.split(/\s */);
+          //var oldArray = this._lastEditTags.toLowerCase().split(/\s */);
+          var oldArray = this._lastEditTags.split(/\s */);
+          var matched = false;
+          var currentTags = new Array();
+          for (t in tagArray) {
+            for (o in oldArray) {
+              if (typeof oldArray[o] == "undefined") {
+                yDebug.print("remove the " + o + ":" + oldArray[o]);
+                oldArray.splice(o,1); 
+                break;
+              }
+              if (tagArray[t] == oldArray[o]) { 
+                matched = true; 
+                oldArray.splice(o,1); 
+                break; 
+              }
+            }
+            if (!matched) {
+              currentTags[currentTags.length] = t;
+            }  
+            matched = false;          
+          }
+     
+          // more than one word changed... abort
+          if(currentTags.length > 1) { 
+            this.hideTagSuggestions(); 
+            return false; 
+          }
+     
+          this._currentTagText = tagArray[currentTags[0]];
+          this._currentTagIndex = currentTags[0];
+          
+          return true;
+        ]]></body>
+      </method>
+
+      <method name="onClickListener">
+        <parameter name="event" />
+        <body><![CDATA[
+	try {
+
+	   			var gXUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";       
+	        if (event.target.nodeName != "tagautocomplete") {
+	 					var tacs = document.getElementsByTagNameNS(gXUL_NS, "tagautocomplete");
+            for (var i=0; i < tacs.length; i++) {
+							var tac = tacs.item(i);
+							if (tac._areSuggestionsVisible()) {
+              	tac.hideTagSuggestions();
+							}
+            }
+          }} catch(e) { yDebug.print("onClickListener(): " + e);}
+        ]]></body>
+      </method>
+
+      <method name="getUserInputTags">
+        <parameter name="format" />
+        <body><![CDATA[
+          var tags = this._tagInputBox.value;
+          if (format == "string") {
+            return tags;
+          }
+          else {
+            var tagArray = tags.split(/\s */);
+            return tagArray;
+          }  
+        ]]></body>
+      </method>
+   
+    </implementation>
+
+    <content>
+      <xul:popupset>
+				<xul:popup anonid="ybTagAutoComplete-popup" ignorekeys="true" class="yb-tag-suggestions-popup" xbl:inherits="maxheight=popupmaxheight">
+					 <xul:scrollbox anonid="ybTagAutoComplete-suggestions" orient="vertical" xbl:inherits="maxheight=popupmaxheight"/>					
+				</xul:popup>
+			</xul:popupset>
+			<xul:textbox anonid="ybTagAutoComplete-tags" xbl:inherits="onfocus,onblur,tabindex,cols,rows,flex,value,accesskey,emptytext"/>
+      <xul:hbox anonid="ybTagAutoComplete-invisible-box" hidden="true">
+        <xul:label anonid="ybTagAutoComplete-invisible-tags"/>
+      </xul:hbox>                  
+    </content>
+    
+  </binding>
+
+</bindings>
+
+

@@ -1,0 +1,186 @@
+<!ENTITY ybookmarks.label "Delicious">
+<!ENTITY ybookmarks.accesskey "L">
+<!ENTITY ybookmarks.feeds.menu "Feeds">
+<!ENTITY ybookmarks.enable.wizard "Enable Wizard">
+<!ENTITY ybookmarks.bookmarkPage.commandkey    "D">
+<!ENTITY ybookmarks.bookmarkPage.modifierskey  "accel">
+<!ENTITY ybookmarks.bundles.label "Tag Bundles">
+
+<!-- Bookmarks Menu -->
+<!ENTITY ybookmarks.bookmarksmenu.hide.label 			"Hide Bookmarks Menu">
+<!ENTITY ybookmarks.bookmarksmenu.hide.this.label 		"Hide This Menu">
+<!ENTITY ybookmarks.bookmarksmenu.show.label 			"Show Bookmarks Menu">
+
+<!-- status bar -->
+<!ENTITY ystatusbar.download.progress            "Bookmark download in progress...">
+<!ENTITY ystatusbar.import.progress              "Import in progress...">
+<!ENTITY ystatusbar.info.tooltip.tags            "Tags:">
+<!ENTITY ystatusbar.info.tooltip.notes           "Notes:">
+<!ENTITY ystatusbar.info.tooltip.shared.no       "Not Shared">
+<!ENTITY ystatusbar.info.tooltip.shared.yes      "Shared">
+<!ENTITY ystatusbar.info.tooltip.lastmodified    "Last Modified:">
+
+<!-- Sidebar -->
+<!ENTITY ybsidebar.title                         "Delicious">
+
+<!ENTITY ybsidebar.header.pinButttonLabel        "Click to automatically hide this sidebar">
+<!-- <!ENTITY ybsidebar.header.pinButttonLabel1                "Click to keep open"> -->
+<!ENTITY ybsidebar.header.closeButtonLabel       "Close Sidebar">
+
+<!ENTITY ybsidebar.provider.label                "Delicious">
+<!ENTITY ybsidebar.switchToSidebar.tooltip       "Switch to Bookmarks Sidebar">
+<!ENTITY ybsidebar.search.label                  "Search:">
+<!ENTITY ybsidebar.search.noTagsFound.label             "No Tags found">
+<!ENTITY ybsidebar.search.noBookmarksFound.label        "No Bookmarks found">
+<!ENTITY ybsidebar.search.searchDelicious.label  "Try this Search on Delicious">
+<!ENTITY ybsidebar.search.searchYahoo.label      "Try this Search on Yahoo!">
+<!ENTITY ybsidebar.search.doSearch.label         "Please type a search in the box above to view your tags and bookmarks">
+<!ENTITY ybsidebar.bookmarks.label               "Bookmarks">
+<!ENTITY ybsidebar.tags.label                    "Tags">
+<!ENTITY ybsidebar.tags.by_alpha                 "By Alpha A-Z">
+<!ENTITY ybsidebar.tags.by_freq                  "By Frequency">
+<!ENTITY ybsidebar.bookmarks.by_alpha            "By Alpha A-Z">
+<!ENTITY ybsidebar.bookmarks.by_site             "By Site">
+<!ENTITY ybsidebar.bookmarks.by_most_visited     "By Most Visited">
+<!ENTITY ybsidebar.bookmarks.by_last_visited     "By Last Visited">
+<!ENTITY ybsidebar.bookmarks.by_added_date       "By Last Added">
+<!ENTITY ybsidebar.loginStatus.on                " on ">
+<!ENTITY ybsidebar.loginStatus.to                " to ">
+<!ENTITY ybsidebar.import.importing.label        "Import in progress">
+
+<!ENTITY ybsidebar.loginStatus.signOut           "Signed out (">
+<!ENTITY ybsidebar.loginStatus.signAgain         "Sign in again">
+<!ENTITY ybsidebar.loginStatus.signClose         ")">
+
+<!ENTITY yb.toolbarbutton.myBookmarks.label      "Bookmarks">
+<!ENTITY yb.toolbarbutton.tagPage.label          "Tag">
+<!ENTITY yb.toolbarbutton.deliciousPage.label    "Delicious">
+
+
+<!ENTITY ybsidebar.openSidebar.commandkey        "B">
+<!ENTITY ybsidebar.openSidebar.modifierskey      "accel">
+<!ENTITY ybsidebar.openPopup.commandkey          "B">
+<!ENTITY ybsidebar.openPopup.modifierskey        "accel,shift">
+
+<!ENTITY ybsidebar.searchMode.fullText        "Full Text">
+<!ENTITY ybsidebar.searchMode.tagsOnly        "Tags Only">
+
+
+<!-- Toolbar -->
+<!ENTITY ybtoolbar.title 						"Delicious Toolbar">
+<!ENTITY ybtoolbar.menulist.tags.label      	"Tags">
+<!ENTITY ybtoolbar.menulist.tags.more.label 	"More Tags">
+<!ENTITY ybtoolbar.menulist.bags.label      	"Favorite Tags">
+<!ENTITY ybtoolbar.menulist.options.label   	"Options...">
+<!ENTITY ybtoolbar.view.bookmarks.label     	"Bookmarks View">
+<!ENTITY ybtoolbar.view.tags.label      		"Favorite Tags View">
+<!ENTITY ybtoolbar.view.bundles.label       	"Tag Bundles View">
+<!ENTITY ybtoolbar.bundles.edit.label       	"Manage Tag Bundles...">
+
+<!ENTITY ybtoolbar.menulist.options.no.tags 			"No Favorite Tags">
+<!ENTITY ybtoolbar.editor.label             			"Manage Favorite Tags...">
+<!ENTITY ybtoolbar.editor.label.accesskey       		"M">
+<!-- <!ENTITY ybtoolbar.editor.description           		"Add and arrange your favorite tags to make them appear in the Bookmarks menu and in your Bookmarks Toolbar."> -->
+<!ENTITY ybtoolbar.editor.description           		"Add and arrange your favorite tags to make them appear in the Delicious Menu and Toolbar.">
+<!ENTITY ybtoolbar.editor.description.note              "Note: you can enter multiple tags. For example entering “news politics” (space separated) would show only your bookmarks that have both of these tags.">
+<!ENTITY ybtoolbar.editor.tagseparator        			"Separate multiple tags with spaces">
+<!ENTITY ybtoolbar.editor.title		        			"Favorite Tags">
+<!ENTITY ybtoolbar.editor.tag.move.up.label				"Move Up">
+<!ENTITY ybtoolbar.editor.tag.move.up.accesskey			"U">
+<!ENTITY ybtoolbar.editor.tag.move.down.label			"Move Down">
+<!ENTITY ybtoolbar.editor.tag.move.down.accesskey		"D">
+<!ENTITY ybtoolbar.editor.delete.label					"Remove">
+<!ENTITY ybtoolbar.editor.delete.accesskey				"R">
+<!ENTITY ybtoolbar.editor.add.label						"Add Tag">
+<!ENTITY ybtoolbar.editor.add.accesskey					"A">
+<!ENTITY ybtoolbar.editor.tags.label					"Favorite Tags">
+<!ENTITY ybtoolbar.editor.order.label					"Sort Order">
+
+<!-- Bundle Editor -->
+<!ENTITY ybtoolbar.bundle.editor.title					"Manage Tag Bundles">
+<!ENTITY ybtoolbar.bundle.editor.description 			"Add and arrange your tag bundles to make them appear in the Bookmarks menu and in your Bookmarks Toolbar."> 
+
+<!ENTITY ybtoolbar.bundle.editor.move.up.label			"Move Up">
+<!ENTITY ybtoolbar.bundle.editor.move.up.accesskey		"U">
+<!ENTITY ybtoolbar.bundle.editor.move.down.label		"Move Down">
+<!ENTITY ybtoolbar.bundle.editor.move.down.accesskey	"D">
+<!ENTITY ybtoolbar.bundle.editor.delete.label			"Remove">
+<!ENTITY ybtoolbar.bundle.editor.delete.accesskey		"R">
+<!ENTITY ybtoolbar.bundle.editor.add.label 				"Add">
+<!ENTITY ybtoolbar.bundle.editor.add.accesskey 			"A">
+
+<!ENTITY ybtoolbar.bundle.editor.bundles.label			"Tag Bundles">
+<!ENTITY ybtoolbar.bundle.editor.tags.label				"Tags">
+<!ENTITY ybtoolbar.bundle.editor.sortorder.label		"Sort Order">
+
+
+<!-- Context menu for Sidebar and Toolbar -->
+<!ENTITY ybcontextmenu.openInWindow.label         "Open">
+<!ENTITY ybcontextmenu.openInWindow.accesskey     "O">
+<!ENTITY ybcontextmenu.openInNewWindow.label      "Open in New Window">
+<!ENTITY ybcontextmenu.openInNewWindow.accesskey  "W">
+<!ENTITY ybcontextmenu.openInNewTab.label         "Open in New Tab">
+<!ENTITY ybcontextmenu.openInNewTab.accesskey     "T">
+<!ENTITY ybcontextmenu.openTag.label              "Open this tag on Delicious">
+<!ENTITY ybcontextmenu.openTag.accesskey          "O">
+<!ENTITY ybcontextmenu.openContainer.label        "Open in Tabs">
+<!ENTITY ybcontextmenu.openContainer.accesskey    "S">
+<!ENTITY ybcontextmenu.newBookmark.label          "New Bookmark">
+<!ENTITY ybcontextmenu.newBookmark.accesskey      "N">
+<!ENTITY ybcontextmenu.deleteBookmark.label       "Delete">
+<!ENTITY ybcontextmenu.deleteBookmark.accesskey   "D">
+<!ENTITY ybcontextmenu.refreshLivemark.label      "Reload Live Bookmark">
+<!ENTITY ybcontextmenu.refreshLivemark.accesskey  "R">
+<!ENTITY ybcontextmenu.moreAbout.label            "More about this Bookmark">
+<!ENTITY ybcontextmenu.moreAbout.accesskey        "M">
+<!ENTITY ybcontextmenu.properties.label           "Properties">
+<!ENTITY ybcontextmenu.properties.accesskey       "P">
+<!ENTITY ybcontextmenu.mailLinks.label            "Mail Bookmarks">
+<!ENTITY ybcontextmenu.mailLinks.accesskey        "M">
+<!ENTITY ybcontextmenu.mailLink.label             "Mail Bookmark">
+<!ENTITY ybcontextmenu.mailLink.accesskey         "M">
+<!ENTITY ybcontextmenu.mailTagLink.label         "Mail Bookmarks for Tag">
+<!ENTITY ybcontextmenu.mailTagLink.accesskey     "M">
+<!ENTITY ybcontextmenu.mailTagLinks.label         "Mail Bookmarks for Tags">
+<!ENTITY ybcontextmenu.mailTagLinks.accesskey     "M">
+
+<!-- Main Context menu-->
+<!ENTITY ybookmarks.context.tagCurrent.label        "Bookmark This Page In Delicious...">
+<!ENTITY ybookmarks.context.tagLink.label           "Bookmark This Link In Delicious...">
+<!ENTITY ybookmarks.context.keyword.label           "Add a Keyword for this Search In Delicious...">
+
+<!-- Bag Editor -->
+<!ENTITY ybbags.editor.title                "Favorite Tags">
+<!ENTITY ybbags.editor.new.label        	"New Entry">
+<!ENTITY ybbags.editor.name.label       	"Name:">
+<!ENTITY ybbags.editor.name.tip.header      "">
+<!ENTITY ybbags.editor.name.tip.content     "The name of the Favorite Tags.">
+<!ENTITY ybbags.editor.tags.label       	"Tags:">
+<!ENTITY ybbags.editor.tags.tip.header      "">
+<!ENTITY ybbags.editor.tags.tip.content     "Enter a list of tags to include in the Favorite Tags.  Tags should be separated by spaces.">
+<!ENTITY ybbags.editor.buttons.delete 		"Delete">
+
+<!--  Bookmarks Manager -->
+<!ENTITY ybbookmarksmanager.treecol.imported.label "Imported">
+
+<!-- Jump To Tags -->
+<!ENTITY ybJumpToTag.dialog.title "Jump To Tag">
+<!ENTITY ybJumpToTag.dialog.label "Enter a Tag:">
+<!ENTITY ybJumpToTag.key.commandkey "Y">
+<!ENTITY ybJumpToTag.key.commandkey_code "VK_Y">
+<!-- test this -->
+<!ENTITY ybJumpToTag.key.modifiers "accel shift">
+<!ENTITY ybJumpToTag.menu.title "Jump To Tag">
+<!ENTITY ybJumpToTag.menu.accesskey "J">
+
+
+
+<!-- Tools Menu -->
+<!ENTITY ybTools.deliciousOptions "Delicious Options">
+<!ENTITY ybTools.deliciousOptions.accesskey "E">
+
+<!-- Standard mode switch dialog -->
+<!ENTITY extensions.ybookmarks.engine.switch.to.standard.mode.text "Switching Delicious Add-On to Normal Mode">
+<!ENTITY extensions.ybookmarks.engine.switch.restart.required "This will require you to restart firefox">
+<!ENTITY extensions.ybookmarks.engine.switch.restart.text "Restart">
+

@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://ybookmarks/skin/overlay.css" type="text/css"?>
+
+<!DOCTYPE page SYSTEM "chrome://ybookmarks/locale/ybookmarks.dtd">
+
+<dialog
+   id="ybJumpToTag" 
+   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+   title="&ybJumpToTag.dialog.title;"
+   buttons="accept,cancel"
+   ondialogaccept="jumpToTag();"
+   >
+<script type="application/x-javascript" src="chrome://ybookmarks/content/providerApis.js"/>
+<script type="application/x-javascript" src="chrome://ybookmarks/content/ybookmarksUtils.js"/>
+<script type="application/x-javascript">
+function jumpToTag() {
+	ybookmarksUtils.openLinkToNewTab(deliciousService.getUrl("tag/"+document.getElementById('tb_JumpToTagText').value));
+}
+</script>
+<hbox flex="1">
+ <label value="&ybJumpToTag.dialog.label;"/><textbox id="tb_JumpToTagText" bk_tabindex="0" size="60" />
+</hbox>
+</dialog>

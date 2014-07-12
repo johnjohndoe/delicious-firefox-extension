@@ -1,0 +1,1101 @@
+<?xml version="1.0"?>
+<!DOCTYPE addBookmarks SYSTEM "chrome://ybookmarks/locale/addbookmarks.dtd">
+<bindings xmlns="http://www.mozilla.org/xbl"
+	xmlns:html="http://www.w3.org/1999/xhtml"
+	xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+	xmlns:xbl="http://www.mozilla.org/xbl">
+	
+	<binding id="ybLabelX">
+		<resources>
+			<stylesheet src="chrome://ybookmarks/skin/ybSharingBindings.css" />
+		</resources>
+		<content>
+			<xul:hbox anonid="labelOuterContainer">
+				<xul:hbox annonid="labelInnerContainer">
+					<xul:label annonid="label" xbl:inherits="value"/>
+					<xul:box annonid="image"/>
+				</xul:hbox>
+			</xul:hbox>
+		</content>
+	</binding>
+	
+	<binding id="ybTagLines" extends="chrome://global/content/bindings/textbox.xml#textbox">
+		<resources>
+			<stylesheet src="chrome://ybookmarks/skin/ybSharingBindings.css" />
+			<script src="chrome://ybookmarks/content/providerApis.js" type="application/x-javascript" />
+			<script src="chrome://ybookmarks/content/ybookmarksUtils.js" type="application/x-javascript" />
+		</resources>
+	
+		<content>
+			<children/>
+			<html:div>
+			<html:div anonid="scrollbox" class="scrollbox">
+				<xul:hbox anonid="inputholder" class="textbox-input-box" xbl:inherits="context,spellcheck">
+					<html:input class="textbox-input" anonid="input"
+						xbl:inherits="onfocus,onblur,value,type,maxlength,disabled,size,readonly,tabindex,accesskey"/>
+				</xul:hbox>
+			</html:div>
+			</html:div>
+		</content>
+    		
+		<handlers>
+
+			<handler event="keypress" charcode=" " phase="capturing">
+			<![CDATA[
+				try {
+					//yDebug.print("ybTaglines::keypress(SPACE)", YB_LOG_MESSAGE);
+
+					if(this.value && this.value != ' ') {
+						this.addTag(this.value);
+						this.value = '';
+					}
+					
+					if(event.preventDefault) event.preventDefault();
+					event.returnValue = false;
+				} catch(e) {
+					yDebug.print("ybTaglines::keypress(SPACE)::Error-"+e, YB_LOG_MESSAGE);
+				}
+			]]>
+			</handler>
+
+			<handler event="keypress" phase="capturing">
+			<![CDATA[
+				try {
+					yDebug.print("ybTaglines::keypress", YB_LOG_MESSAGE);
+						switch(event.keyCode) {
+						case event.DOM_VK_ESCAPE:
+							if(this.popup && this.popup.getAttribute("preventDefault") == "true") {
+								if(event.preventDefault) event.preventDefault();
+								event.returnValue = false;
+								this.popup.setAttribute("preventDefault", "false");
+							}
+						break;
+						case event.DOM_VK_RETURN:  //enter
+							if(this.popup && this.popup.getAttribute("preventDefault") == "true") {
+								if(event.preventDefault) event.preventDefault();
+								event.returnValue = false;
+								this.popup.setAttribute("preventDefault", "false");
+							} else if(this.inputField.value) {
+								this.addTag(this.value);
+								this.value = '';
+							}
+						break;
+           case event.DOM_VK_TAB:
+						if(this.popup && this.popup.getAttribute("preventDefault") == "true") {
+							this.popup._hidePopup();
+							this.popup.setAttribute("preventDefault", "false");
+						}
+						if(this.value && this.value != ' ') {
+							this.addTag(this.value);
+							this.value = '';						
+						}
+         }
+				} catch(e) {
+					yDebug.print("ybTaglines::keypress::Error-"+e, YB_LOG_MESSAGE);
+				}
+			]]>
+			</handler>
+			
+			<handler event="keypress" keycode="VK_BACK" phase="capturing">
+			<![CDATA[
+				try {
+					//yDebug.print("ybTaglines::keypress(BACK)", YB_LOG_MESSAGE);
+					if(this.value == '') {
+						this.editTag();
+						if(event.preventDefault) event.preventDefault();
+						event.returnValue = false;
+					}
+				} catch(e) {
+					yDebug.print("ybTaglines::keypress(BACK)::Error-"+e, YB_LOG_MESSAGE);
+				}
+			]]>
+			</handler>
+
+			<handler event="click" phase="capturing">
+			<![CDATA[
+				try {
+					//yDebug.print("ybTaglines::click", YB_LOG_MESSAGE);
+
+					if (!this.mIgnoreClick && this.clickSelectsAll &&
+					this.inputField.selectionStart == this.inputField.selectionEnd) {
+						this.focus();
+						this.editor.selectAll();
+					}
+
+					var tgt = event.originalTarget;
+
+					if(tgt.nodeName == "xul:label") {
+						this.editTag(tgt.parentNode.parentNode.parentNode);
+					}
+
+					if(tgt.nodeName == "xul:box") {
+						var tag = tgt.parentNode.parentNode.parentNode.getAttribute("value");
+						this.removeTag(tag);
+					}
+					event.stopPropagation();
+					this.focus();
+				} catch(e) {
+					yDebug.print("ybTaglines::click::Error-"+e, YB_LOG_MESSAGE);
+				}
+			]]>
+			</handler>
+ 		</handlers>
+		
+		<implementation>
+			<property name="emptyTextAttribute">
+			<getter><![CDATA[
+			  if (!this.customEmptyTextFlag) {
+				var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
+					.getService(Components.interfaces.nsIXULAppInfo);
+				var versionChecker = Components.classes["@mozilla.org/xpcom/version-comparator;1"]
+							       .getService(Components.interfaces.nsIVersionComparator);
+				if(versionChecker.compare(appInfo.version, "3.6a1pre") >= 0) {// running under Firefox 3.6 or later
+				  this.customEmptyTextFlag = "isempty";
+				} else {
+				  this.customEmptyTextFlag = "empty";
+				}
+			  }
+			  return this.customEmptyTextFlag;
+			]]></getter>
+		        </property>
+
+			<constructor>
+			<![CDATA[
+				try {
+					var str = this.boxObject.getProperty("value");
+					if (str) {
+					  this.inputField.value = str;
+					  this.boxObject.removeProperty("value");
+					}
+
+					// this.editor may not be initialized yet in
+					// bindings that inherit from xul:textbox, so
+					// do this after construction
+					setTimeout(function (a) {
+					  a._updateVisibleText();
+						
+						if(ybookmarksUtils.getFFMajorVersion() > 2)
+							a._setNewlineHandling();
+					}, 0, this);
+
+					//tags array
+					this.tagsArray = [];
+					
+					//extended value
+					this._extendedValue = "";
+					
+					//get all the containers and elements
+					this.scrollbox = document.getAnonymousElementByAttribute(this, "anonid", "scrollbox");
+					this.input = document.getAnonymousElementByAttribute(this, "anonid", "input");
+					this.inputHolder = document.getAnonymousElementByAttribute(this, "anonid", "inputholder");
+
+					this.popup = document.getElementById(this.getAttribute("autosuggestpopup"));
+
+					var tb = this;
+					if(this.popup) {
+						this.addEventListener("keydown", function(event) { if(tb.popup.keydownHandler) tb.popup.keydownHandler(event); } , false);
+						this.addEventListener("input", function(event) { if(tb.popup.inputHandler) tb.popup.inputHandler(event); } , false);
+					}
+					
+					//set initial width of textbox
+					this.scrollbox.style.width = this.getAttribute("width") + "px";
+					this.input.style.minWidth = (this.getAttribute("width") - 2) + "px";
+					
+					this.lastHeight = this.boxObject.height;
+					
+					//listen for blur if FF 4
+					if(this.placeholder) {
+						var self = this;
+						this.input.addEventListener("blur", function(event) {
+							if(self.extendedValue) {
+								self.input.placeholder = "";
+							} else {
+								self.input.placeholder = self.getAttribute("emptytext");
+							}
+						}, false);
+					}
+				} catch(e) {
+					yDebug.print("ybSharingBindings.xml::ybTagLines::constructor::error:"+e, YB_LOG_MESSAGE);
+				}
+			]]>
+			</constructor>
+
+      <destructor>
+        <![CDATA[
+        	try {
+	          	if (this.inputField.value)
+	            	this.boxObject.setProperty('value', this.inputField.value);
+	          	this.mInputField = null;
+	          
+	          	var tb = this;
+				this.addEventListener("keydown", function(event) { if(tb.popup.keydownHandler) tb.popup.keydownHandler(event); } , false);
+				this.addEventListener("input", function(event) { if(tb.popup.inputHandler) tb.popup.inputHandler(event); } , false);
+			} catch(e) {
+				yDebug.print("ybSharingBindings.xml::ybTagLines::destructor::error:"+e, YB_LOG_MESSAGE);
+			}
+        ]]>
+      </destructor>
+
+	<!-- overriden from textbox xbl -->
+      <method name="_updateVisibleText">
+        <body><![CDATA[
+          //FF 4 uses placeholder object. dont do anything if found placeholder
+          if(this.placeholder) return;
+          
+          if(this._extendedValue != '') return;
+          
+          if (!this.hasAttribute("focused") &&
+              !this.value &&
+              this.emptyText) {
+            // This section is a wee bit hacky; without the timeout, the CSS
+            // style corresponding to the "empty" attribute doesn't kick in
+            // until the text has changed, leading to an unpleasant moment
+            // where the emptyText flashes black before turning gray.
+	    // first param is "empty" or "isempty" depending on FF version.
+	    this.setAttribute(this.emptyTextAttribute, 'true');     
+            setTimeout(function (textbox) {
+              if (textbox.hasAttribute("empty") || textbox.hasAttribute("isempty")) {
+                try {
+                  textbox.editor.transactionManager.beginBatch();
+                } catch (e) {}
+                textbox.inputField.value = textbox.emptyText;
+              }
+            }, 200, this);
+          }
+        ]]></body>
+      </method>
+
+			<property name="extendedValue"
+				onget="return (this.hasAttribute('empty') || this.hasAttribute('isempty')) ? '' : ybookmarksUtils.trimStr(this._extendedValue);">
+			</property>
+
+			<property name="innerTextbox"
+				onget="return this.inputField;">
+			</property>
+
+			<property name="inputBoxHolder"
+				onget="return this.inputHolder">
+			</property>
+ 
+			<method name="addTag">
+				<parameter name="tag"/>
+                <parameter name="noFocusShift"/>
+				<body>
+				<![CDATA[
+					try {
+						//yDebug.print("ybTaglines::addTag", YB_LOG_MESSAGE);
+						
+						if(!tag) return;
+
+						// check to see if this is already in the list
+						var tagIndex = this.getTagIndexData(tag);
+						if(tagIndex != -1) {
+							this.flashUITag(tag);
+							return;
+						}
+
+						// add tag to data array
+						this.addTagToData(tag);
+						
+						if(this.tagsArray.length > 0) {
+							this.input.style.minWidth = "";
+						} 
+						
+						// add new tag to UI
+						this.addUITag(tag);
+
+						// notify all the listeners
+						 var os = Components.classes["@mozilla.org/observer-service;1"]
+								  .getService(Components.interfaces.nsIObserverService);
+						 os.notifyObservers(null, "ybookmark.ybTagLines.tagAdded", tag);
+						
+						if(!noFocusShift) {
+              this.focus();
+            } else {
+							if(this.hasAttribute('empty')) this.removeAttribute('empty');
+							if(this.hasAttribute('isempty')) this.removeAttribute('isempty');
+							this.input.value = '';
+						}
+					} catch(e) {
+						yDebug.print("ybTaglines::addTag::Error-"+e, YB_LOG_MESSAGE);
+					}
+				]]>
+				</body>
+			</method>     		
+
+	
+			<method name="clearAll">
+				<body>
+				<![CDATA[
+					try {
+						//yDebug.print("ybTaglines::clearAll", YB_LOG_MESSAGE);
+						
+						this.removeAllTags();
+						this.value = "";
+
+						// notify all the listeners
+						 var os = Components.classes["@mozilla.org/observer-service;1"]
+								  .getService(Components.interfaces.nsIObserverService);
+						 os.notifyObservers(null, "ybookmark.ybTagLines.clearAll", null);		
+						 
+						this.input.style.minWidth = (this.getAttribute("width") - 2) + "px";
+						 
+						 this.focus();				
+					} catch(e) {
+						yDebug.print("ybTaglines::clearAll::Error-"+e, YB_LOG_MESSAGE);
+					}
+				]]>
+				</body>
+			</method>
+	
+	
+			<method name="editTag">
+				<parameter name="tagObj"/>
+				<body>
+				<![CDATA[
+					try {
+						//yDebug.print("ybTaglines::editTag", YB_LOG_MESSAGE);
+						
+						if(this.value && this.value != ' ') {
+							this.addTag(this.value);
+							this.value = '';
+						}
+
+						if(!tagObj) {
+							tagObj = this.getLastUITag();
+						}
+						
+						if(!tagObj) return;
+						
+						var tag = tagObj.getAttribute("value");
+
+						this.removeTag(tag);
+
+						if(tag) {
+							this.value = tag;
+							this.editor.selectAll();
+						}
+					} catch(e) {
+						yDebug.print("ybTaglines::editTag::Error-"+e, YB_LOG_MESSAGE);
+					}
+				]]>
+				</body>
+			</method>
+
+			<method name="removeTag">
+				<parameter name="tag"/>
+				<parameter name="noFocus"/>
+				<body>
+				<![CDATA[
+					try {
+						//yDebug.print("ybTaglines::removeTag", YB_LOG_MESSAGE);
+						
+						if(!tag) return;
+						
+						var tagObj = this.getUITag(tag);
+						
+						if(tagObj) {
+							this.scrollbox.removeChild(tagObj);
+							this.sizeToContent();
+						}
+
+						this.removeTagFromData(tag);
+						
+						if(this.tagsArray.length == 0)	this.input.style.minWidth = (this.getAttribute("width") - 2) + "px";
+
+						
+						// notify all the listeners
+						var os = Components.classes["@mozilla.org/observer-service;1"]
+								  .getService(Components.interfaces.nsIObserverService);
+						os.notifyObservers(null, "ybookmark.ybTagLines.tagRemoved", tag);
+						if(!noFocus) {
+							this.focus();
+						}
+					} catch(e) {
+						yDebug.print("ybTaglines::removeTag::Error-"+e, YB_LOG_MESSAGE);
+					}
+				]]>
+				</body>
+			</method>
+
+			<method name="removeAllTags">
+				<body>
+				<![CDATA[
+					try {
+						//yDebug.print("ybTaglines::removeAllTags", YB_LOG_MESSAGE);
+						var tags = this.getUITags();
+
+						for(var i=0; i<tags.length; i++) {
+							this.scrollbox.removeChild(tags[i]);
+						}
+						
+						this.sizeToContent();
+						
+						this.tagsArray = [];
+						this._extendedValue = '';
+
+						// notify all the listeners
+						var os = Components.classes["@mozilla.org/observer-service;1"]
+								  .getService(Components.interfaces.nsIObserverService);
+						os.notifyObservers(null, "ybookmark.ybTagLines.allTagsRemoved", null);						
+					} catch(e) {
+						yDebug.print("ybTaglines::removeAllTags::Error-"+e, YB_LOG_MESSAGE);
+					}
+				]]>
+				</body>
+			</method>
+
+			<method name="getTagIndexData">
+				<parameter name="tag"/>
+				<body>
+				<![CDATA[
+					  try {
+					  	//yDebug.print("ybTaglines::getTagIndexData", YB_LOG_MESSAGE);
+					  	
+						// returns the index of the desired tag in this.tagsArray
+						for (var i=0; i<this.tagsArray.length; i++) {
+							if (this.tagsArray[i].toLowerCase() === tag.toLowerCase()) {
+								return i;
+							};
+						};
+						return -1;
+					} catch(e) {
+						yDebug.print("ybTaglines::getTagIndexData::Error-"+e, YB_LOG_MESSAGE);
+					}
+				]]>
+				</body>
+			</method>	
+	
+			<method name="addTagToData">
+				<parameter name="tag"/>
+				<body>
+				<![CDATA[
+					  try {
+					  	//yDebug.print("ybTaglines::addTagToData", YB_LOG_MESSAGE);
+					  	
+						// add to array
+						this.tagsArray.push(tag);
+						// add to string
+						this._extendedValue += ' '+ tag;
+					} catch(e) {
+						yDebug.print("ybTaglines::addTagToData::Error-"+e, YB_LOG_MESSAGE);
+					}
+				]]>
+				</body>
+			</method>	    
+
+			<method name="removeTagFromData">
+				<parameter name="tag"/>
+				<body>
+				<![CDATA[
+					try {
+						//yDebug.print("ybTaglines::removeTagFromData", YB_LOG_MESSAGE);
+						
+						// loop through all tags, looking for the one we're on
+						for (var i=0; i<this.tagsArray.length; i++) {
+							if (this.tagsArray[i]==tag) {
+								// remove this tag from the array
+								this.tagsArray.splice(i, 1);
+								break;
+							};
+						};
+
+						this._extendedValue = this.tagsArray.join(' ');
+					} catch(e) {
+						yDebug.print("ybTaglines::removeTagFromData::Error-"+e, YB_LOG_MESSAGE);
+					}
+				]]>
+				</body>
+			</method>
+
+			<method name="addUITag">
+				<parameter name="tag"/>
+				<body>
+				<![CDATA[
+					  try {
+					  	//yDebug.print("ybTaglines::addUITag", YB_LOG_MESSAGE);
+					  	
+						// create the tag and add it to the DOM
+						var newTag = document.createElement("labelx");
+						newTag.setAttribute("value", tag);
+						newTag.setAttribute("class", "newTagItem");
+
+						this.scrollbox.insertBefore(newTag, this.input.parentNode);
+						this.sizeToContent();
+					} catch(e) {
+						yDebug.print("ybTaglines::addUITag::Error-"+e, YB_LOG_MESSAGE);
+					}
+				]]>
+				</body>
+			</method>	    
+
+				
+			<method name="getUITags">
+				<body>
+				<![CDATA[
+					try {
+						//yDebug.print("ybTaglines::getUITags", YB_LOG_MESSAGE);
+						
+						var nodes = nodeList = [];
+						nodes = this.scrollbox.childNodes;
+						for(var i=1; i<nodes.length-2; i++) {
+							nodeList.push(nodes[i]);
+						}
+						return nodeList;
+					} catch(e) {
+						yDebug.print("ybTaglines::getUITags::Error-"+e, YB_LOG_MESSAGE);
+					}
+				]]>
+				</body>
+			</method>
+
+			<method name="getLastUITag">
+				<parameter name="taglist"/>
+				<body>
+				<![CDATA[
+					try {
+						//yDebug.print("ybTaglines::getLastUITag", YB_LOG_MESSAGE);
+						
+						if(!taglist) taglist = this.getUITags();
+						var last = taglist.length;
+
+						if(last > 0)
+							return taglist[last-1];
+						else
+							return false;
+					} catch(e) {
+						yDebug.print("ybTaglines::getLastUITag::Error-"+e, YB_LOG_MESSAGE);
+					}
+				]]>
+				</body>
+			</method>
+		
+
+			<method name="getUITag">
+				<parameter name="tag"/>
+				<body>
+				<![CDATA[
+					try {
+						//yDebug.print("ybTaglines::getUITag", YB_LOG_MESSAGE);
+						
+						// find out which index the tag is at
+						var tagIndex = this.getTagIndexData(tag);
+						if (tagIndex < 0) return false;   // make sure this tag actually exists
+						// get tag UI object
+						var tags = this.getUITags();
+						if (tagIndex > tags.length) return false;   // make sure this tagIndex actually exists
+						// return whatever we have
+						return tags[tagIndex];
+					} catch(e) {
+						yDebug.print("ybTaglines::getUITag::Error-"+e, YB_LOG_MESSAGE);
+					}
+				]]>
+				</body>
+			</method>
+
+			<method name="flashUITag">
+				<parameter name="tag"/>
+				<body>
+				<![CDATA[
+					try {
+						//yDebug.print("ybTaglines::flashUITag", YB_LOG_MESSAGE);
+						
+						var uiTag = this.getUITag(tag);
+						
+						if(!uiTag) return;
+
+						uiTag.setAttribute("class", "newTagItem flash");
+						
+						setTimeout(function(uiTag) { uiTag.setAttribute("class", "newTagItem"); }, 100, uiTag);						
+					} catch(e) {
+						yDebug.print("ybTaglines::getUITag::Error-"+e, YB_LOG_MESSAGE);
+					}
+				]]>
+				</body>
+			</method>
+			
+			<method name="sizeToContent">
+			<body>
+				<![CDATA[
+					try {
+						yDebug.print("ybTaglines::sizeToContent::Error-"+this.lastHeight+" "+this.boxObject.height, YB_LOG_MESSAGE);
+						
+						if(!this.lastHeight) this.lastHeight = this.boxObject.height;
+						
+						if(this.lastHeight != this.boxObject.height) {
+							if(window) window.sizeToContent();
+							this.lastHeight = this.boxObject.height;
+						}
+					} catch(e) {
+						yDebug.print("ybTaglines::sizeToContent::Error-"+e, YB_LOG_MESSAGE);
+					}
+				]]>
+			</body>
+			</method>
+		</implementation>
+	</binding>
+	
+	<binding id="ybTagLinesACListBox" extends="chrome://global/content/bindings/richlistbox.xml#richlistbox">
+		<content>
+		<children includes="listheader"/>
+      	<xul:scrollbox allowevents="true" orient="vertical" anonid="main-box"
+                     flex="1" style="overflow: hidden;">
+        <children/>
+      	</xul:scrollbox>
+		</content>
+	</binding>
+	
+	 <binding id="ybTagLinesAutoComplete" extends="chrome://global/content/bindings/popup.xml#popup">
+		<resources>
+			<stylesheet src="chrome://ybookmarks/skin/ybSharingBindings.css" />
+			<script src="chrome://ybookmarks/content/ybookmarksUtils.js" type="application/x-javascript" />
+		</resources>
+		
+	 	<content>
+	 			<xul:vbox flex="1" class="suggestVBox">
+		 			<xul:hbox class="suggestHBox">
+		 				<xul:richlistbox flex="0" anonid="suggestions" class="suggestRichListBox"/>
+		 				<xul:vbox hidden="true">
+		 					<xul:spacer flex="1"/>
+		 					<xul:image anonid="suggestScrollUp" class="suggestScrollUp" />
+		 					<xul:image anonid="suggestScrollDown" class="suggestScrollDown" />
+		 				</xul:vbox>
+		 			</xul:hbox>
+	 			</xul:vbox>
+	 	</content>
+	 	
+	 	<handlers>
+	 		<handler event="mousedown" phase="capturing">
+ 				<![CDATA[
+ 					try {
+ 						//yDebug.print("ybSharingBindings::ybTagLineAutoComplete::mousedown", YB_LOG_MESSAGE);
+ 						
+ 						var tgt = event.originalTarget;
+ 						
+ 						if(tgt.getAttribute("anonid") == "suggestScrollUp") {
+  							var self = this;
+ 							this.scrollTimer.initWithCallback(function () { 
+				 							var idx = self.suggest.getIndexOfFirstVisibleRow();
+				 							if(idx > 0) self.suggest.scrollToIndex(--idx);
+ 										}, 100, Components.interfaces.nsITimer.TYPE_REPEATING_SLACK);
+ 						}
+ 						
+ 						if(tgt.getAttribute("anonid") == "suggestScrollDown") {
+  							var self = this;
+ 							this.scrollTimer.initWithCallback(function () { 
+				 							var idx = self.suggest.getIndexOfFirstVisibleRow();
+				 							if(idx < (self.suggest.getRowCount() - 1)) self.suggest.scrollToIndex(++idx);
+ 										}, 100, Components.interfaces.nsITimer.TYPE_REPEATING_SLACK);
+ 						}
+ 					} catch(e) {
+ 						yDebug.print("ybSharingBindings::ybTagLineAutoComplete::mousedown::Error:"+e, YB_LOG_MESSAGE);
+ 					}
+ 				]]>	 			
+	 		</handler>
+	 		<handler event="mouseup" phase="capturing">
+ 				<![CDATA[
+ 					try {
+ 						//yDebug.print("ybSharingBindings::ybTagLineAutoComplete::mouseup", YB_LOG_MESSAGE);
+ 						if(this.scrollTimer) this.scrollTimer.cancel();
+ 					} catch(e) {
+ 						yDebug.print("ybSharingBindings::ybTagLineAutoComplete::mouseup::Error:"+e, YB_LOG_MESSAGE);
+ 					}
+ 				]]>	 			
+	 		</handler>
+	 		
+	 		<handler event="click" phase="capturing">
+ 				<![CDATA[
+ 					try {
+ 						//yDebug.print("ybSharingBindings::ybTagLineAutoComplete::click", YB_LOG_MESSAGE);
+ 						
+ 						var tgt = event.originalTarget;
+ 						
+ 						if(tgt.getAttribute("anonid") == "suggestScrollUp") {
+ 							var idx = this.suggest.getIndexOfFirstVisibleRow();
+ 							if(idx > 0) this.suggest.scrollToIndex(--idx);
+ 						}
+ 						
+ 						if(tgt.getAttribute("anonid") == "suggestScrollDown") {
+ 							var idx = this.suggest.getIndexOfFirstVisibleRow();
+ 							
+ 							if(idx < (this.suggest.getRowCount() - 1)) this.suggest.scrollToIndex(++idx);
+ 						}
+						
+ 						if(tgt.nodeName == "richlistitem" || tgt.nodeName == "label" || tgt.nodeName == "image") {
+					 		if(this.suggest.selectedIndex != -1) {
+								this._hidePopup();
+								if(this.inputField) {
+									this.inputField.addTag(this.suggest.value);
+									this.inputField.value = '';
+									this.inputField.focus();
+								}
+
+								if(event.preventDefault) event.preventDefault();
+								event.returnValue = false;
+							}
+ 						}
+ 						
+ 					} catch(e) {
+ 						yDebug.print("ybSharingBindings::ybTagLineAutoComplete::click::Error:"+e, YB_LOG_MESSAGE);
+ 					}
+ 				]]>	 			
+	 		</handler>
+	 		
+	 		<handler event="popupshowing" phase="capturing">
+ 				<![CDATA[
+ 					try {
+ 						//yDebug.print("ybSharingBindings::ybTagLineAutoComplete::onpopupshowing", YB_LOG_MESSAGE);
+ 						
+						if(!this.inputField || !this.inputField.value) {
+							this._hidePopup();
+						} 						
+ 					} catch(e) {
+ 						yDebug.print("ybSharingBindings::ybTagLineAutoComplete::onpopupshowing::Error:"+e, YB_LOG_MESSAGE);
+ 					}
+ 				]]>	 			
+	 		</handler>
+	 	</handlers>
+	 	<implementation implements="nsIAutoCompleteObserver">
+	 		<constructor>
+ 				<![CDATA[
+ 					try {
+ 						//yDebug.print("ybSharingBindings::ybTagLineAutoComplete::constructor", YB_LOG_MESSAGE);
+ 						
+ 						this.inputField = document.getElementById(this.getAttribute("inputfield"));
+ 						this.localStore = Components.classes["@yahoo.com/nsYDelLocalStore;1"].
+																								getService(Components.interfaces.nsIYDelLocalStore);
+ 						this.acSearch = Components.classes["@mozilla.org/autocomplete/search;1?name=delicious-share"]
+								  .createInstance(Components.interfaces.nsIAutoCompleteSearch);
+						this.searchInProgress = false;
+								  
+						this.suggest = document.getAnonymousElementByAttribute(this, "anonid", "suggestions");
+ 						
+ 						this.lastSearch = "";
+ 						 						
+ 						this.scrollTimer = Components.classes["@mozilla.org/timer;1"]
+								  .createInstance(Components.interfaces.nsITimer);
+ 					} catch(e) {
+ 						yDebug.print("ybSharingBindings::ybTagLineAutoComplete::constructor::Error:"+e, YB_LOG_MESSAGE);
+ 					}
+ 				]]>
+	 		</constructor>
+
+      		<property name="maxRows"
+                onset="this.setAttribute('maxrows', val); return val;"
+                onget="return parseInt(this.getAttribute('maxrows')) || 0;"/>
+                
+	 		<method name="keydownHandler">
+	 			<parameter name="event"/>
+	 			<body>
+	 				<![CDATA[
+	 					try {
+	 						yDebug.print("ybSharingBindings::ybTagLineAutoComplete::keydownHandler", YB_LOG_MESSAGE);
+	 						if(this.getAttribute("hidden") == "false") {
+	 							switch(event.keyCode) {
+	 								case event.DOM_VK_RETURN:
+										this.setAttribute("preventDefault", "true");
+										if(event.preventDefault) event.preventDefault();
+										event.returnValue = false;
+	 								case event.DOM_VK_TAB:
+										if(this.suggest) {
+											//this is to match the tags popup behavior
+											if(this.suggest.getRowCount() > 0 &&
+											   this.suggest.selectedIndex == -1) {
+												this.suggest.selectedIndex = 0;
+											}
+
+		 									if(this.suggest.selectedIndex != -1) {
+												this.setAttribute("preventDefault", "true");
+												this._hidePopup();
+		 										this.updateInputField(this.suggest.selectedItem.value);
+												if(event.preventDefault) event.preventDefault();
+												event.returnValue = false;
+		 									}
+	 									}
+									break;
+									case event.DOM_VK_DOWN:
+										if(this.suggest) {
+											if(this.suggest.selectedIndex == (this.suggest.getRowCount()-1)) this.suggest.selectedIndex = 0;
+											else this.suggest.selectedIndex += 1;
+											
+											this.suggest.ensureElementIsVisible(this.suggest.selectedItem);
+											
+											if(event.preventDefault) event.preventDefault();
+											event.returnValue = false;
+											
+											//set focus back to send box
+											if(this.inputField) this.inputField.focus();
+
+										}
+									break;
+									case event.DOM_VK_UP:
+										if(this.suggest) {
+											if(this.suggest.selectedIndex == 0) this.suggest.selectedIndex = (this.suggest.getRowCount() - 1);
+											else this.suggest.selectedIndex -= 1;
+											
+											this.suggest.ensureElementIsVisible(this.suggest.selectedItem);
+
+											if(event.preventDefault) event.preventDefault();
+											event.returnValue = false;
+											
+											//set focus back to send box
+											if(this.inputField) this.inputField.focus();
+
+										}
+									break;
+									case event.DOM_VK_ESCAPE:
+										this.setAttribute("preventDefault", "true");
+										this._hidePopup();
+										if(event.preventDefault) event.preventDefault();
+										event.returnValue = false;
+									break;
+									case event.DOM_VK_SPACE:
+										this._hidePopup();
+									break;
+									case event.DOM_VK_DELETE:
+										/*
+										 //TODO:Handling recipient delete in auto-complete.
+										if(this.state && this.state == "open") {
+											if(this.suggest && this.suggest.selectedIndex != -1) {
+												var item = this.suggest.removeItemAt(this.suggest.selectedIndex);
+												
+												if(item && item.hasAttribute("type") && item.hasAttribute("value")) {
+													this.localStore.deleteRecipient(item.getAttribute("type"), item.getAttribute("value"));
+													
+													// notify all the listeners
+													var os = Components.classes["@mozilla.org/observer-service;1"]
+																.getService(Components.interfaces.nsIObserverService);
+													os.notifyObservers(null, "ybookmark.ybTagLineAutoComplete.recipientDeleted", item.getAttribute("type"));
+												}
+											}
+										}
+										*/
+									break;
+	 							}
+ 							}
+	 					} catch(e) {
+	 						yDebug.print("ybSharingBindings::ybTagLineAutoComplete::keydownHandler::Error:"+e, YB_LOG_MESSAGE);
+	 					}
+	 				]]>
+	 			</body>
+	 		</method>
+	 		
+	 		<method name="inputHandler">
+	 			<parameter name="event"/>
+	 			<body>
+	 				<![CDATA[
+	 					try {
+	 						//yDebug.print("ybSharingBindings::ybTagLineAutoComplete::inputHandler", YB_LOG_MESSAGE);
+	 							if(this.inputField && this.inputField.value) {
+	 								var result = {};
+	 								if(this.searchInProgress) this.acSearch.stopSearch();
+	 								this.acSearch.startSearch(this.inputField.value, "", null, this);
+	 								this.searchInProgress = true;
+	 							} else {
+	 								//hide the popup if its open
+	 								this._hidePopup();
+	 							}
+	 					} catch(e) {
+	 						yDebug.print("ybSharingBindings::ybTagLineAutoComplete::inputHandler::Error:"+e, YB_LOG_MESSAGE);
+	 					}
+	 				]]>
+	 			</body>
+	 		</method>
+	 		
+	 		<method name="onSearchResult">
+	 			<parameter name="acSearch"/>
+	 			<parameter name="acResult"/>
+	 			<body>
+	 				<![CDATA[
+	 					try {
+	 						//yDebug.print("ybSharingBindings::ybTagLineAutoComplete::onSearchResult", YB_LOG_MESSAGE);
+	 						this.searchInProgress = false;
+	 						
+	 						if(acResult.searchResult == Components.interfaces.nsIAutoCompleteResult.RESULT_SUCCESS) {
+								//clear older suggetions
+								this.clearSuggestions();
+								
+	 							for(var i=0; i<acResult.matchCount; i++) {
+	 								var value = acResult.getValueAt(i);
+									var type = acResult.getStyleAt(i);
+									var label = acResult.getCommentAt(i);
+	
+									this.addSuggestion(value, label, type);
+	 							}
+	 							
+	 							//show popup if match count is nonzero
+	 							if(acResult.matchCount > 0) {
+									if(acResult.matchCount == 1 && acResult.getValueAt(0) == acResult.searchString) {
+										this._hidePopup();
+									} else {
+										this._openPopup();
+									}
+								}
+	 							else this._hidePopup();
+ 							} else if(acResult.searchResult == Components.interfaces.nsIAutoCompleteResult.RESULT_NOMATCH ||
+ 									  acResult.searchResult == Components.interfaces.nsIAutoCompleteResult.RESULT_FAILURE) {
+ 								//for all other results hide the popup
+ 								this._hidePopup();
+ 							}
+	 					} catch(e) {
+	 						yDebug.print("ybSharingBindings::ybTagLineAutoComplete::onSearchResult::Error:"+e, YB_LOG_MESSAGE);
+	 					}
+	 				]]>
+	 			</body>
+	 		</method>
+	 		
+	 		<method name="addSuggestion">
+	 			<parameter name="value"/>
+	 			<parameter name="label"/>
+	 			<parameter name="type"/>
+	 			<body>
+	 				<![CDATA[
+	 					try {
+	 						//yDebug.print("ybSharingBindings::ybTagLineAutoComplete::addSuggestion", YB_LOG_MESSAGE);
+	 						
+	 						var XULNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+	 						
+	 						var itm = document.createElementNS(XULNS, "richlistitem");
+	 						var val = document.createElementNS(XULNS, "label");
+	 						var frq = document.createElementNS(XULNS, "label");
+	 						var img = document.createElementNS(XULNS, "image");
+	 						
+	 						if(value) {
+	 							itm.setAttribute("value", value);
+	 							if(label.indexOf(" ") != -1) {
+	 								val.setAttribute("value", label.split(" ")[0]);
+	 								frq.setAttribute("value", label.split(" ")[1]);
+	 							} else {
+	 								val.setAttribute("value", label);
+	 								frq.setAttribute("value", "");
+	 							}
+	 							val.setAttribute("flex", "1");
+ 							}
+ 								 						
+	 						itm.appendChild(img);
+	 						itm.appendChild(val);
+	 						itm.appendChild(frq);
+	 						
+	 						itm.setAttribute("onmouseover", "this.parentNode.selectedItem = this;");
+	 						itm.setAttribute("onmouseout", "this.parentNode.selectedIndex = -1;");
+	 						itm.setAttribute("align", "center");
+	 						itm.setAttribute("type", type);
+	 						
+	 						this.suggest.appendChild(itm);
+	 					} catch(e) {
+	 						yDebug.print("ybSharingBindings::ybTagLineAutoComplete::addSuggestion::Error:"+e, YB_LOG_MESSAGE);
+	 					}
+	 				]]>
+	 			</body>
+	 		</method>
+	 		
+	 		<method name="clearSuggestions">
+	 			<body>
+	 				<![CDATA[
+	 					try {
+	 						//yDebug.print("ybSharingBindings::ybTagLineAutoComplete::clearSuggestions", YB_LOG_MESSAGE);
+	 						
+	 						if(this.suggest) {
+					            var element = this.suggest.firstChild;
+					            var nElement;
+					            while (element) {
+					              nElement = element;
+					              element = element.nextSibling;
+					                this.suggest.removeChild(nElement);
+					            }
+	 						}
+	 					} catch(e) {
+	 						yDebug.print("ybSharingBindings::ybTagLineAutoComplete::clearSuggestions::Error:"+e, YB_LOG_MESSAGE);
+	 					}
+	 				]]>
+	 			</body>
+	 		</method>
+	 		
+	 		<method name="_openPopup">
+	 			<body>
+	 				<![CDATA[
+	 					try {
+	 						//yDebug.print("ybSharingBindings::ybTagLineAutoComplete::openPopup", YB_LOG_MESSAGE);
+	 						
+	 						this.setAttribute("hidden", "false");
+	 						
+	 						//adjust height first
+	 						this.adjustHeight();
+	 						setTimeout(function(self) { self.adjustHeight(); }, 0, this);
+	 						
+	 						if(ybookmarksUtils.getFFMajorVersion() > 2) {
+								this.openPopup(this.inputField.innerTextbox, "after_start", 0, 0, false, false);
+							} else {
+								var posX = this.inputField.inputBoxHolder.boxObject.x;
+								var posY = document.documentElement.boxObject.y + this.inputField.inputBoxHolder.boxObject.y + this.inputField.inputBoxHolder.boxObject.height - 3;
+								document.popupNode = document.documentElement; // needed for some bug
+								this.showPopup(document.documentElement, posX, posY, "popup");
+							}
+	 						
+	 						if(this.inputField) this.inputField.focus();
+
+	 					} catch(e) {
+	 						yDebug.print("ybSharingBindings::ybTagLineAutoComplete::openPopup::Error:"+e, YB_LOG_MESSAGE);
+	 					}
+	 				]]>
+	 			</body>
+	 		</method>
+	 		<method name="_hidePopup">
+	 			<body>
+	 				<![CDATA[
+	 					try {
+	 						//yDebug.print("ybSharingBindings::ybTagLineAutoComplete::hidePopup", YB_LOG_MESSAGE);
+	 						
+	 						this.hidePopup();
+	 						this.setAttribute("hidden", "true");
+	 					} catch(e) {
+	 						yDebug.print("ybSharingBindings::ybTagLineAutoComplete::hidePopup::Error:"+e, YB_LOG_MESSAGE);
+	 					}
+	 				]]>
+	 			</body>
+	 		</method>
+	 		<method name="updateInputField">
+				<parameter name="value"/>
+	 			<body>
+	 				<![CDATA[
+	 					try {
+	 						//yDebug.print("ybSharingBindings::ybTagLineAutoComplete::updateInputField", YB_LOG_MESSAGE);
+	 						this.inputField.addTag(value);
+	 						this.inputField.value = "";
+	 					} catch(e) {
+	 						yDebug.print("ybSharingBindings::ybTagLineAutoComplete::updateInputField::Error:"+e, YB_LOG_MESSAGE);
+	 					}
+	 				]]>
+	 			</body>
+	 		</method>
+
+	 		<method name="adjustHeight">
+	 			<body>
+	 				<![CDATA[
+	 					try {
+	 						//yDebug.print("ybSharingBindings::ybTagLineAutoComplete::adjustHeight", YB_LOG_MESSAGE);
+							
+				          	var rows = this.suggest.childNodes;
+				          	var numRows = rows.length;
+				
+				          	var height = 0;
+				          	if (numRows) {
+				            	var lastRowShown = rows[numRows - 1];
+				
+				            	height = lastRowShown.boxObject.y + lastRowShown.boxObject.height -
+				              		rows[0].boxObject.y;
+				          	}
+				
+				          	if (height && height != this.suggest.height)
+				            	this.suggest.height = height;
+            				//yDebug.print("ybSharingBindings::ybTagLineAutoComplete::adjustHeight"+this.suggest.height, YB_LOG_MESSAGE);
+	 					} catch(e) {
+	 						yDebug.print("ybSharingBindings::ybTagLineAutoComplete::adjustHeight::Error:"+e, YB_LOG_MESSAGE);
+	 					}
+	 				]]>
+	 			</body>
+	 		</method>
+	 		
+	 	</implementation>
+	 </binding>
+</bindings>

@@ -1,0 +1,125 @@
+.scrollbox {
+	min-height: 18px;
+}
+
+.textbox-input-box {
+}
+
+.textbox-input {
+
+}
+
+.newTagItem {
+-moz-border-radius-bottomleft:3px;
+-moz-border-radius-bottomright:3px;
+-moz-border-radius-topleft:3px;
+-moz-border-radius-topright:3px;
+cursor:pointer;
+background:#E8F1F7 none repeat scroll 0 0;
+margin-right: 2px;
+margin-top: 1px;
+}
+
+.newTagItem hbox hbox label {
+cursor:pointer;
+color:#000000;
+}
+
+.newTagItem:hover hbox hbox label{
+color:#005DC9;
+}
+
+.newTagItem hbox hbox box {
+background:transparent url(chrome://ybookmarks/skin/del_sprite_smallIcons.gif) no-repeat scroll 0 -399px;
+opacity:0.2;
+width:13px;
+margin-right: 2px;
+}
+
+.newTagItem:hover hbox hbox box {
+background:transparent url(chrome://ybookmarks/skin/del_sprite_smallIcons.gif) no-repeat scroll 0 -399px;
+opacity:1;
+}
+
+.flash {
+background:#C5D5E0 none repeat scroll 0 0;
+}
+
+.flash a {
+color:#000000;
+}
+
+
+.suggestVBox {
+	padding-right: 1px;
+	background-color: white;
+}
+
+.suggestHBox {
+	border: solid 1px #565656;
+	background-color: white;
+}
+
+.suggestRichListBox {
+	-moz-appearance: none;
+	-moz-binding: url('chrome://ybookmarks/content/ybSharingBindings.xml#ybTagLinesACListBox');	
+}
+
+.suggestScrollUp {
+	list-style-image: url("chrome://ybookmarks/skin/icons_scroll.gif");
+	-moz-image-region: rect(0px 10px 5px 0px);
+	margin-right: 4px;
+	margin-top: 4px;
+	margin-bottom: 4px;
+	margin-left: 2px;
+}
+
+.suggestScrollUp:hover {
+	-moz-image-region: rect(5px 10px 10px 0px);
+}
+
+.suggestScrollDown {
+	list-style-image: url("chrome://ybookmarks/skin/icons_scroll.gif");
+	-moz-image-region: rect(10px 10px 15px 0px);
+	margin-right: 4px;
+	margin-top: 4px;
+	margin-bottom: 4px;
+	margin-left: 2px;
+}
+
+.suggestScrollDown:hover {
+	-moz-image-region: rect(15px 10px 20px 0px);
+}
+
+
+richlistitem {
+	color: #565656;
+}
+
+richlistitem[selected="true"] {
+  background-color: #565656;
+  color: white;
+}
+
+richlistitem:hover {
+	background-color: #565656;
+	color: white;
+}
+
+richlistitem[type="twitter"] image {
+	list-style-image: url("chrome://ybookmarks/skin/del_sprites_autoComplete.png");
+	-moz-image-region: rect(20px 13px 30px 0px);
+	margin-top: 2px;
+}
+
+richlistitem[type="email"] image {
+	list-style-image: url("chrome://ybookmarks/skin/del_sprites_autoComplete.png");
+	-moz-image-region: rect(0px 13px 10px 0px);
+	margin-top: 2px;
+}
+
+richlistitem[type="delicious"] image {
+	list-style-image: url("chrome://ybookmarks/skin/del_sprites_autoComplete.png");
+	-moz-image-region: rect(40px 13px 50px 0px);
+	margin-top: 2px;
+}

@@ -1,0 +1,6 @@
+<!ENTITY yDisableExtensions.dialog.title 	"Disable Incompatible Extensions">
+
+<!ENTITY yDisableExtensions.found.label 	"The following extensions were found on your profile:">
+<!ENTITY yDisableExtensions.disable.label 	"These extensions need to be disabled for Delicious Bookmarks to work properly.">
+<!ENTITY yDisableExtensions.prompt.label 	"Do you want to disable them? Clicking on Cancel will disable Delicious Bookmarks.">
+<!ENTITY yDisableExtensions.restart.label 	"Your browser will restart after performing these changes.">

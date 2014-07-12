@@ -1,0 +1,587 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?> 
+<?xml-stylesheet href="chrome://browser/skin/" type="text/css"?> 
+<?xml-stylesheet href="chrome://browser/skin/browser.css" type="text/css"?>
+<?xml-stylesheet href="chrome://ybookmarks/skin/overlay.css" type="text/css"?>
+
+<!DOCTYPE overlay [
+  <!ENTITY % ybookmarksDTD SYSTEM "chrome://ybookmarks/locale/ybookmarks.dtd">
+  %ybookmarksDTD;
+  <!ENTITY % menubarDTD SYSTEM "chrome://ybookmarks/locale/menubar.dtd">
+  %menubarDTD;
+]>
+<overlay id="ybookmarks-overlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
+         xmlns:nc="http://home.netscape.com/NC-rdf#">
+  <script type="application/x-javascript" src="chrome://ybookmarks/content/yDebug.js"/>
+  <script type="application/x-javascript" src="chrome://ybookmarks/content/ybookmarksUtils.js"/>
+  <script type="application/x-javascript" src="chrome://ybookmarks/content/json.js" />
+  <script type="application/x-javascript" src="chrome://browser/content/utilityOverlay.js"/>
+  <script type="application/x-javascript" src="chrome://browser/content/bookmarks/bookmarksMenu.js"/>
+  
+  <script type="application/x-javascript" src="chrome://ybookmarks/content/options.js"/>
+  <script type="application/x-javascript" src="chrome://ybookmarks/content/ybookmarksOverlay.js"/>
+  <script type="application/x-javascript" src="chrome://ybookmarks/content/tabsOpener.js"/>
+  <script type="application/x-javascript" src="chrome://ybookmarks/content/menubar.js"/>
+  <script type="application/x-javascript" src="chrome://ybookmarks/content/menubarutils.js"/>
+  <script type="application/x-javascript" src="chrome://ybookmarks/content/loginwindow.js"/>
+  <script type="application/x-javascript" src="chrome://ybookmarks/content/yAddBookMark.js"/>
+  <script type="application/x-javascript" src="chrome://ybookmarks/content/providerApis.js"/>  
+  <script type="application/x-javascript" src="chrome://ybookmarks/content/bags.js"/>  
+  <script type="application/x-javascript" src="chrome://ybookmarks/content/ybMenus.js"/>
+  <script type="application/x-javascript" src="chrome://ybookmarks/content/toolbar.js"/>
+  <script type="application/x-javascript" src="chrome://ybookmarks/content/idManager.js"/>
+  <script type="application/x-javascript" src="chrome://ybookmarks/content/ybAwesomebarTagSuggest.js" />
+  
+  <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
+  <script type="application/x-javascript" src="chrome://global/content/nsTransferable.js"/>
+  
+
+  <stringbundleset id="stringbundleset">
+    <stringbundle id="ybookmarks-strings" src="chrome://ybookmarks/locale/ybookmarks.properties"/>
+    <stringbundle id="yb-strings-bookmarks" src="chrome://browser/locale/bookmarks/bookmarks.properties"/>
+    <stringbundle id="yb-strings-places" src="chrome://browser/locale/places/places.properties"/>
+    <stringbundle id="strbndl_idManager" src="chrome://ybookmarks/locale/idManager.properties"/>
+ 	<stringbundle id="ybookmarks-option-strings" src="chrome://ybookmarks/locale/options.properties"/>
+  </stringbundleset>
+
+  <commandset id="mainCommandSet">
+    <command id="cmd_yb_bookmark_this_page" oncommand="yAddBookMark.open();"/>
+    <command id="cmd_yb_bookmark_all_tabs" oncommand="ybookmarks_Main.BookmarkAllTabs(event, document);" label="Bookmark All Tabs using this"/>
+    <command id="cmd_yb_bookmark_this_frame" oncommand="var doc=document.popupNode.ownerDocument; yAddBookMark.open(doc.location.href, doc.title);"/>
+    <command id="cmd_yb_search_bookmarks" oncommand="ybookmarks_Main.SearchBookmarks();"/>
+    <command id="cmd_yb_manage" oncommand="ybookmarks_Main.SearchBookmarks();"/>
+    <command id="cmd_yb_enable_wizard" oncommand="ybookmarksMain.enableWizard();"/>
+    <command id="cmd_yb_open_toolbar_editor" oncommand="ybToolbar.openTagsToolbarEditor();"/>
+    <command id="cmd_yb_open_bundle_editor" oncommand="ybToolbar.openBundleEditor();"/> 
+    <command id="cmd_yb_toolbar_bookmarksview" oncommand="ybToolbar.setView(0);"/>
+    <command id="cmd_yb_toolbar_tagsview" oncommand="ybToolbar.setView(1);"/>
+    <command id="cmd_yb_toolbar_bundlesview" oncommand="ybToolbar.setView(2);"/>
+    <command id="cmd_yb_bookmarksmenu_hide" oncommand="ybUserInterface.setHideUI(true);"/>
+    <command id="cmd_yb_bookmarksmenu_show" oncommand="ybUserInterface.setHideUI(false);"/>
+    <command id="cmd_yb_jump_to_tag" oncommand="ybookmarksMain.jumpToTag();"/>
+    <command id="cmd_yb_jump_my_del" oncommand="ybookmarksMain.loadRelevantPage(null, 'your');"/>
+    <command id="cmd_yb_switch_regular" oncommand="YBidManager.switchToStandardMode();"/>    
+  </commandset>
+
+  <popupset id="mainPopupSet">
+    <popup id="yb-bookmarks-context-menu"
+        onpopupshowing="return ybBookmarksMenu.createContextMenu(event);"
+                    onpopuphidden ="ybBookmarksMenu.destroyContextMenu(event);">
+                   <menuitem id="yb-bookmarks-context-menu-open-in-window" label="&ybcontextmenu.openInWindow.label;" 
+                      accesskey="&ybcontextmenu.openInWindow.accesskey;" default="true"
+                      oncommand="ybToolbar.openURLIn(event, 'current');"/>
+                   <menuitem id="yb-bookmarks-context-menu-open-in-new-window" label="&ybcontextmenu.openInNewWindow.label;" 
+                      accesskey="&ybcontextmenu.openInNewWindow.accesskey;"
+          oncommand="ybToolbar.openURLIn(event, 'window');"/>  
+       <menuitem id="yb-bookmarks-context-menu-open-in-new-tab" label="&ybcontextmenu.openInNewTab.label;" 
+          accesskey="&ybcontextmenu.openInNewTab.accesskey;"
+          oncommand="ybToolbar.openURLIn(event, 'tab');"/>
+      <menuitem id="yb-bookmarks-context-menu-open-in-tabs" label="&ybcontextmenu.openContainer.label;" 
+              accesskey="&ybcontextmenu.openContainer.accesskey;"
+              oncommand="try {ybToolbar.openBookmarkContainer(document.popupNode.childNodes[0]);} catch(e){}"
+              onclick="if (event.button==1) {ybToolbar.openBookmarkContainer(document.popupNode.childNodes[0]);}"/>
+
+                   <menuitem id="yb-bookmarks-context-menu-refresh-livemark" 
+                     label="&ybcontextmenu.refreshLivemark.label;"
+                     accesskey="&ybcontextmenu.refreshLivemark.accesskey;"
+                     oncommand="ybBookmarksMenu.refreshLivemark();"/>
+
+                   <menuseparator/>
+                   <menuitem label="&ybcontextmenu.newBookmark.label;"
+                      accesskey="&ybcontextmenu.newBookmark.accesskey;"
+                      oncommand="ybBookmarksMenu.newBookmark(event);"/>
+                   <menuseparator/>
+
+                    <menuitem label="&ybcontextmenu.deleteBookmark.label;" 
+                        accesskey="&ybcontextmenu.deleteBookmark.accesskey;"
+                        oncommand="ybBookmarksMenu.deleteBookmark();"/>
+                    <menuseparator/>
+
+           <menuitem label="&ybcontextmenu.moreAbout.label;" 
+                     accesskey="&ybcontextmenu.moreAbout.accesskey;"
+                     oncommand="ybToolbar.moreAbout(event);"/>
+       <menuitem label="&ybcontextmenu.properties.label;" 
+          accesskey="&ybcontextmenu.properties.accesskey;"
+          oncommand="ybBookmarksMenu.editBookmark(event);"/>
+    </popup>    
+      
+    <popup id="yb-tags-context-menu">
+        <menuitem id="yb-tags-context-menu-open-tag" label="&ybcontextmenu.openTag.label;" 
+              accesskey="&ybcontextmenu.openTag.accesskey;"
+              oncommand="ybToolbar.openTag(document.popupNode.childNodes[0], event);"
+              onclick="if (event.button==1) {yDebug.print(event);  }"/>
+        <menuitem id="yb-tags-context-menu-open-in-tabs" label="&ybcontextmenu.openContainer.label;" 
+              accesskey="&ybcontextmenu.openContainer.accesskey;"
+              oncommand="ybToolbar.openBookmarkContainer(document.popupNode.childNodes[0]);"
+              onclick="if (event.button==1) {yDebug.print(event);  }"/>
+    </popup>    
+    
+    <tooltip id="ybToolbar-tooltip" noautohide="true" 
+                  onpopupshowing="return ybToolbar.fillInBTTooltip(document.tooltipNode)">
+           <vbox id="ybToolbar-tooltip-box" flex="1">  
+             <label id="ybToolbar-tooltip-text" />
+             <label id="ybToolbar-tooltip-url" />
+           </vbox>
+      </tooltip>
+      
+    <popup id="ybToolbar-context-menu"> 
+      <menuitem id="ybToolbar-context-menu-view-bookmarks" observes="yb-broadcaster-bookmarksview-menuitem"/> 
+      <menuitem id="ybToolbar-context-menu-view-tags" observes="yb-broadcaster-tagsview-menuitem"/> 
+      <menuitem id="ybToolbar-context-menu-bundles-tags" observes="yb-broadcaster-bundlesview-menuitem"/> 
+      <menuseparator/>
+      <menuitem id="ybToolbar-context-menu-bags-editor" 
+        observes="yb-broadcaster-favorite-tags-editor"
+                accesskey="&ybtoolbar.editor.label.accesskey;" />
+            <menuitem id="ybToolbar-options-bundles-editor" 
+                observes="yb-broadcaster-bundles-editor" />
+
+      <menuseparator/>
+      <menuitem id="ybToolbar-context-menu-your-bookmarks" label="&delicious.your.label;"
+                    oncommand="ybookmarksMain.loadRelevantPage(event, 'your');"/>
+    </popup>
+</popupset>
+  
+  <keyset id="mainKeyset">
+    <key id="addYBookmarkAsKb" command="cmd_yb_bookmark_this_page" />
+    
+    <key id="key_myDelicious" oncommand="ybookmarksMain.loadRelevantPage(null, 'your');"/>
+
+    <key id="keyJumpToTag" command="cmd_yb_jump_to_tag"/>
+    
+    <key id="key_openYBookmarksSidebar" command="cmd_yb_search_bookmarks" />
+  </keyset>
+
+  <broadcasterset id="mainBroadcasterSet"> 
+        <broadcaster id="yb-broadcaster-bookmarksview-menuitem" label="&ybtoolbar.view.bookmarks.label;" command="cmd_yb_toolbar_bookmarksview" type="radio" name="ybToolbar-view"/>
+        <broadcaster id="yb-broadcaster-tagsview-menuitem" label="&ybtoolbar.view.tags.label;" command="cmd_yb_toolbar_tagsview" type="radio" name="ybToolbar-view"/>
+        <broadcaster id="yb-broadcaster-bundlesview-menuitem" label="&ybtoolbar.view.bundles.label;" command="cmd_yb_toolbar_bundlesview" type="radio" name="ybToolbar-view"/>
+        
+        <broadcaster id="yb-broadcaster-favorite-tags-editor" label="&ybtoolbar.editor.label;" command="cmd_yb_open_toolbar_editor" />
+        <broadcaster id="yb-broadcaster-bundles-editor" label="&ybtoolbar.bundles.edit.label;" command="cmd_yb_open_bundle_editor" />
+        <broadcaster id="yb-broadcaster-bookmarksmenu-hide" label="&ybookmarks.bookmarksmenu.hide.label;" command="cmd_yb_bookmarksmenu_hide" />
+        <broadcaster id="yb-broadcaster-bookmarksmenu-show" label="&ybookmarks.bookmarksmenu.show.label;" command="cmd_yb_bookmarksmenu_show" />
+        <broadcaster id="yb-broadcaster-bookmarksmenu-hide-this" label="&ybookmarks.bookmarksmenu.hide.this.label;" command="cmd_yb_bookmarksmenu_hide" />
+
+  </broadcasterset>
+
+	<menupopup id="menu_ToolsPopup">
+		<menuitem insertafter="menu_preferences" label="&ybTools.deliciousOptions;" id="deliciousOptions" 
+			class="menuitem-iconic provider-menu-icon" oncommand="ybookmarksMain.showDeliciousOptions();" accesskey="&ybTools.deliciousOptions.accesskey;" />
+	</menupopup>
+
+  <menubar id="main-menubar">
+      <!-- Tools menu -->
+    <menu id="yb_menu" label="&ybookmarks.label;" insertbefore="bookmarksMenu, bookmarks-menu"
+          accesskey="&ybookmarks.accesskey;" hidden="true" 
+          onpopupshowing="ybookmarksMain.addTagsToolbarToMenu(event);"
+          flags="dont-build-content"
+        >
+      <menupopup id="ybookmarks_menu_popup" type="main" onpopupshowing="ybookmarks_Main.addTagsToMenu(event);" contextmenu="yb-bookmarks-context-menu">
+        <menuitem id="ybookmarks_menu_add_bookmark" 
+        		  class="menuitem-iconic menubar-icon"                  
+                  label="&ybookmarks.bookmark.this.page;"
+                  key="addYBookmarkAsKb"
+                  command="cmd_yb_bookmark_this_page"/>        
+        <menuitem id="ybookmarks_menu_del_sidebar" 
+                  label="&ybookmarks.yourbookmarks.label;"
+        		  class="menuitem-iconic menubar-icon"        
+                  hidden="true" yb_std_mode_only="true"                  
+                  key="key_openYBookmarksSidebar"
+                  command="cmd_yb_search_bookmarks"/>
+        <menuitem label="&delicious.your.label;" key="key_myDelicious"
+				  class="menuitem-iconic menubar-icon"
+                  accesskey="&delicious.your.accesskey;"
+                  onclick="ybookmarksMain.loadRelevantPage(event, 'your', true);"
+                  oncommand="ybookmarksMain.loadRelevantPage(event, 'your');"/>
+        <menuseparator/>                  
+        <menuitem label="&delicious.moreabout.label;"
+        			  class="menuitem-iconic menubar-icon"
+                      accesskey="&delicious.moreabout.accesskey;"
+                      onclick="ybookmarksMain.loadRelevantPage(event, 'moreabout', true);"
+                      oncommand="ybookmarksMain.loadRelevantPage(event, 'moreabout');"/>          
+                  
+        <menuseparator/>
+
+        <menu container="true" class="menu-iconic bookmark-item" id="ybookmarks_rcs_visited" 
+              label="&ybookmarks.recently.saved.label;" hidden="true" yb_std_mode_only="true"
+              accesskey="&ybookmarks.recently.saved.label.accesskey;">
+          <menupopup id="ybookmarks_rcs_visited_pop" type="recent" contextmenu="yb-bookmarks-context-menu"
+               onpopupshowing="ybookmarksMain.onRecentlySavedMenuPopupShowing(event);"
+          />
+        </menu>
+
+        <menu container="true" class="menu-iconic bookmark-item" id="ybookmarks_fr_visited" 
+              label="&ybookmarks.frequently.visited;" hidden="true" yb_std_mode_only="true"
+              accesskey="&ybookmarks.frequently.visited.accesskey;">
+          <menupopup id="ybookmarks_fr_visited_pop" type="frequent" contextmenu="yb-bookmarks-context-menu"
+               onpopupshowing="ybookmarksMain.onFrequentMenuPopupShowing(event);"
+          />
+        </menu>
+        
+        <menuseparator  hidden="true" yb_std_mode_only="true" />
+
+        <menu container="true" class="menu-iconic bookmark-item" id="ybookmarks_tags_menu" 
+             hidden="true" yb_std_mode_only="true" 
+            label="&ybookmarks.tags.label;" accesskey="&ybookmarks.tags.label.accesskey;"
+            >
+          <menupopup contextmenu="yb-bookmarks-context-menu" onpopupshowing="if (event.target == this) { ybookmarksMain.onTagsMenuPopupShowing(event);}"/>
+        </menu>
+        
+        <menuitem id="ybookmarks_tags_toolbar_editor" 
+                    hidden="true" yb_std_mode_only="true"
+                    observes="yb-broadcaster-favorite-tags-editor" 
+                    class="left-padded-menuitem menuitem-iconic menubar-icon"
+          accesskey="&ybtoolbar.editor.label.accesskey;" />
+        <menuitem id="ybookmarks_tags_toolbar_start" hidden="true"/>
+        <menuitem id="ybookmarks_tags_toolbar_stop" hidden="true"/>
+        <menuseperator/>
+        
+      <menuseparator hidden="true" yb_std_mode_only="true" />
+
+      <menu label="&ybookmarks.provider.menu.label;" class="menu-iconic provider-menubar-icon"
+            accesskey="&ybookmarks.provider.menu.label.accesskey;" hidden="true" yb_std_mode_only="true">
+          <menupopup onpopupshowing="ybookmarksMain.delMenuShowing( this );">
+
+            <menuitem label="&delicious.network.label;"
+                      accesskey="&delicious.network.accesskey;"
+                      onclick="ybookmarksMain.loadRelevantPage(event, 'network', true);"
+                      oncommand="ybookmarksMain.loadRelevantPage(event, 'network');"/>
+
+            <menuitem label="&ybookmarks.tags.label;"
+                      accesskey="&ybookmarks.tags.label.accesskey;"
+                      onclick="ybookmarksMain.loadRelevantPage(event, 'tags', true);"
+                      oncommand="ybookmarksMain.loadRelevantPage(event, 'tags');"/>
+
+                      
+            <menuitem label="&delicious.subscriptions.label;"
+                      accesskey="&delicious.subscriptions.accesskey;"
+                      onclick="ybookmarksMain.loadRelevantPage(event, 'subscriptions', true);"
+                      oncommand="ybookmarksMain.loadRelevantPage(event, 'subscriptions');"/>
+                      
+            <menuitem label="&delicious.linksforyou.label;"
+                      accesskey="&delicious.linksforyou.accesskey;"
+                      onclick="ybookmarksMain.loadRelevantPage(event, 'for', true);"
+                      oncommand="ybookmarksMain.loadRelevantPage(event, 'for');"/>
+            <!-- menuitem label="&delicious.accountsettings.label;"
+                      accesskey="&delicious.accountsettings.accesskey;"
+                      onclick="ybookmarksMain.loadRelevantPage(event, 'settings', true);"
+                      oncommand="ybookmarksMain.loadRelevantPage(event, 'settings');"/-->
+
+            <menuseparator/>
+            <!-- menuitem label="&delicious.homepage.label;"
+                      accesskey="&delicious.homepage.accesskey;"
+                      class="menuitem-iconic provider-menu-icon"
+                      onclick="ybookmarksMain.loadRelevantPage(event, 'homepage', true);"
+                      oncommand="ybookmarksMain.loadRelevantPage(event, 'homepage');"/-->
+            <menuitem label="&delicious.popular.label;"
+                      accesskey="&delicious.popular.accesskey;"
+                      onclick="ybookmarksMain.loadRelevantPage(event, 'popular', true);"
+                      oncommand="ybookmarksMain.loadRelevantPage(event, 'popular');"/>
+            <menuitem label="&delicious.recent.label;"
+                      accesskey="&delicious.recent.accesskey;"
+                      onclick="ybookmarksMain.loadRelevantPage(event, 'recent', true);"
+                      oncommand="ybookmarksMain.loadRelevantPage(event, 'recent');"/>
+			<!-- menuitem label="&ybJumpToTag.dialog.title;"
+                      key="keyJumpToTag"
+                      command="cmd_yb_jump_to_tag"/>
+
+            <menuseparator/-->
+
+            <!-- yb_debugModeOnly= is our custom attribute -->
+            <menuseparator yb_debugModeOnly="true" />
+            <!-- DEBUG STUFF -->
+            <menuitem label="DEBUG -- ignore" disabled="true" yb_debugModeOnly="true" />
+
+            <menuitem label="&ybookmarks.enable.wizard;" oncommand="ybookmarksMain.enableWizard();"
+                      yb_debugModeOnly="true" />
+
+          </menupopup>
+        </menu>
+
+        <menuitem label="&ybJumpToTag.dialog.title;" key="keyJumpToTag"
+				  class="menuitem-iconic menubar-icon"                  
+                  accesskey="&ybJumpToTag.menu.accesskey;" hidden="true" yb_std_mode_only="true"
+                  command="cmd_yb_jump_to_tag"/>
+        
+        <!--  Bad, I hate this.. for classic mode-->
+        <!--
+        <menuitem label="&delicious.your.label;" key="key_myDelicious"
+                      accesskey="&delicious.your.accesskey;"
+                      onclick="ybookmarksMain.loadRelevantPage(event, 'your', true);"
+                      oncommand="ybookmarksMain.loadRelevantPage(event, 'your');"
+                      hidden="true"	yb_classic_only="true"/>
+         -->
+            <menuitem label="&delicious.network.label;"
+                      accesskey="&delicious.network.accesskey;"
+                      onclick="ybookmarksMain.loadRelevantPage(event, 'network', true);"
+                      oncommand="ybookmarksMain.loadRelevantPage(event, 'network');"
+                      hidden="true"	yb_classic_only="true"/>                      
+            <menuitem label="&ybookmarks.tags.label;"
+                      accesskey="&ybookmarks.tags.label.accesskey;"
+                      onclick="ybookmarksMain.loadRelevantPage(event, 'tags', true);"
+                      oncommand="ybookmarksMain.loadRelevantPage(event, 'tags');"
+                      hidden="true"	yb_classic_only="true"/>                                
+            <menuitem label="&delicious.subscriptions.label;"
+                      accesskey="&delicious.subscriptions.accesskey;"
+                      onclick="ybookmarksMain.loadRelevantPage(event, 'subscriptions', true);"
+                      oncommand="ybookmarksMain.loadRelevantPage(event, 'subscriptions');"
+                      hidden="true"	yb_classic_only="true"/>
+                                            
+            <menuitem label="&delicious.linksforyou.label;"
+                      accesskey="&delicious.linksforyou.accesskey;"
+                      onclick="ybookmarksMain.loadRelevantPage(event, 'for', true);"
+                      oncommand="ybookmarksMain.loadRelevantPage(event, 'for');"
+                      hidden="true"	yb_classic_only="true"/>          
+            
+            
+  
+          <menu id="ybookmarks_loggedin_menu" label="&ybookmarks.loggedin.label;" class="menu-iconic menubar-icon"
+                accesskey="&ybookmarks.loggedin.label.accesskey;">
+            <menupopup>
+              <menuitem label="&ybookmarks.logout.label;" 
+                 oncommand="ybookmarksMain.loadRelevantPage(event, 'logout');"/>
+            </menupopup>            
+          </menu>
+          <menuitem id="ybookmarks_login_menuitem" label="&ybookmarks.login.label;" class="menuitem-iconic menubar-icon"
+            oncommand="ybookmarksMain.loadRelevantPage(event, 'login');"/>
+
+
+          <menuseparator hidden="true" yb_classic_only="true"/>
+           
+            <menuitem label="&delicious.popular.label;"
+                      accesskey="&delicious.popular.accesskey;"
+                      onclick="ybookmarksMain.loadRelevantPage(event, 'popular', true);"
+                      oncommand="ybookmarksMain.loadRelevantPage(event, 'popular');"
+                      hidden="true"	yb_classic_only="true"/>                      
+            <menuitem label="&delicious.recent.label;"
+                      accesskey="&delicious.recent.accesskey;"
+                      onclick="ybookmarksMain.loadRelevantPage(event, 'recent', true);"
+                      oncommand="ybookmarksMain.loadRelevantPage(event, 'recent');"
+                      hidden="true"	yb_classic_only="true"/>
+            <!-- <menuseparator hidden="true" yb_classic_only="true"/>            -->
+          <menuseparator/>
+      <menuitem label="&delicious.about.label;"
+      	  class="menuitem-iconic menubar-icon"
+          accesskey="&delicious.about.accesskey;"
+          onclick="ybookmarksMain.loadRelevantPage(event, 'about', true);"
+          oncommand="ybookmarksMain.loadRelevantPage(event, 'about');"/>           
+      
+      <menuitem id="ybookmarks_tour" label="&ybookmarks.tour.label;"
+                      class="menuitem-iconic"
+                      image="chrome://ybookmarks/skin/questionMark.gif"
+                      oncommand="ybookmarksMain.loadRelevantPage(event, 'tour');"
+                      />
+      <menuseparator/>  
+      <menuitem id="ybookmarks_bookmarksmenu_hide" class="menuitem-iconic menubar-icon" yb_std_mode_only="true" hidden="true"
+                      observes="yb-broadcaster-bookmarksmenu-hide"/>
+      <menuitem id="ybookmarks_bookmarksmenu_show" class="menuitem-iconic menubar-icon" yb_std_mode_only="true" hidden="true"
+                      observes="yb-broadcaster-bookmarksmenu-show"/>
+      <menuitem id="ybookmarks_switch_to_std_mode"
+      				class="menuitem-iconic menubar-icon"
+					label="&delicious.switch.to.standard.label;"
+					oncommand="YBidManager.switchToStandardMode();" hidden="true"
+					yb_classic_only="true" />
+      <menuitem id="ybookmarks_switch_to_regular_mode"
+      				class="menuitem-iconic menubar-icon"
+					label="&delicious.switch.to.classic.label;"
+					oncommand="YBidManager.switchToClassicModeWarning();"
+					/>  
+      </menupopup>
+    </menu>
+  </menubar>
+
+  <statusbar id="status-bar">  
+
+    <statusbarpanel id="ybookmark-progress-statusbarpanel" insertafter="statubar-progresspanel" collapsed="true">
+      <hbox align="center" pack="center">
+        <label id="ybookmark-progresstext" value="&ystatusbar.download.progress;" collapsed="true"/>
+        <progressmeter id="ybookmark-progressmeter" class="progressmeter-statusbar" value="0" collapsed="true"/>
+      </hbox>
+    </statusbarpanel>
+
+    <statusbarpanel id="ybookmark-import-progress-statusbarpanel" insertafter="statubar-progresspanel" align="center" pack="center" collapsed="true">
+      <label id="ybookmark-import-progresstext" value="&ystatusbar.import.progress;" collapsed="true"/>
+      <box align="center" pack="center">
+        <progressmeter id="ybookmark-import-progressmeter" class="progressmeter-statusbar" collapsed="true"/>
+      </box>
+    </statusbarpanel>
+  </statusbar>
+
+  <toolbarpalette id="BrowserToolbarPalette">
+        <toolbaritem id="ybToolbar-toolbar" class="chromeclass-directories"  title="&ybtoolbar.title;">
+            <toolbarbutton id="ybToolbar-options" class="yb-toolbar-button" type="menu">
+                 <menupopup id="ybToolbar-options-menu"> 
+                  <menuitem id="ybToolbar-options-view-bookmarks" name="ybToolbar-view" observes="yb-broadcaster-bookmarksview-menuitem"/> 
+                  <menuitem id="ybToolbar-options-view-tags" type="radio" name="ybToolbar-view" observes="yb-broadcaster-tagsview-menuitem"/> 
+                  <menuitem id="ybToolbar-options-view-bundles" label="&ybtoolbar.view.tags.label;" name="ybToolbar-view" observes="yb-broadcaster-bundlesview-menuitem"/> 
+                  <menuseparator/>
+                  <menuitem id="ybToolbar-options-bags-editor" 
+                            observes="yb-broadcaster-favorite-tags-editor" 
+                            accesskey="&ybtoolbar.editor.label.accesskey;" />
+                    <menuitem id="ybToolbar-options-bundles-editor" 
+                            observes="yb-broadcaster-bundles-editor" />
+                     <menuseparator/>
+                  <menuitem id="ybToolbar-options-your-bookmarks" label="&delicious.your.label;"
+                                oncommand="ybookmarksMain.loadRelevantPage(event, 'your');"/>
+                </menupopup>
+            </toolbarbutton>
+
+        <hbox id="ybToolbar-bookmarksview">
+          <hbox id="ybToolbar-bookmarksview-nonbookmarks">
+            <toolbarbutton id="ybToolbar-selection" type="menu" container="true" class="yb-tag-item yb-toolbar-button">
+                <menupopup  id="ybToolbar-selection-popup" onpopupshowing="ybToolbar.reconstructMenuList();">
+                  <menuitem id="ybToolbar-selection-tags-start" hidden="true" />
+                  <menuitem id="ybToolbar-selection-tags-end" hidden="true" disabled="true"     
+                            label="&ybtoolbar.menulist.options.no.tags;"/>
+                  <menuseparator/>
+                  <menuitem id="ybToolbar-selection-recentlybookmarked" label="&ybookmarks.recently.saved.label;" oncommand="try {ybToolbar.refreshBookmarksView('system:bookmonkey:recentlybookmarked');} catch(e){}" class="menuitem-iconic bookmark-item" container="true"/>
+                  <menuitem id="ybToolbar-selection-mostvisited" label="&ybookmarks.frequently.visited;" oncommand="ybToolbar.refreshBookmarksView('system:bookmonkey:mostvisited');" class="menuitem-iconic bookmark-item" container="true"/>
+                  <menuseparator/>
+                  <menuitem id="ybToolbar-selection-tagstoolbar-editor" 
+                                                              command="cmd_yb_open_toolbar_editor" 
+                                                              label="&ybtoolbar.editor.label;"
+                                                              class="left-padded-menuitem"
+                                                              accesskey="&ybtoolbar.editor.label.accesskey;" />
+
+
+                  <menuitem id="ybToolbar-selection-options" label="&ybtoolbar.menulist.options.label;" oncommand="ybToolbar.openToolbarOptions();" hidden="true"/>
+                </menupopup>
+            </toolbarbutton>
+          </hbox> 
+          <hbox id="ybToolbar-bookmarksview-bookmarks" flex="0" class="bookmarks-toolbar-items"
+                 ondragover="nsDragAndDrop.dragOver(event,ybToolbar.dndObserver);"
+                 ondragdrop="nsDragAndDrop.drop(event,ybToolbar.dndObserver);"
+                 ondragexit="nsDragAndDrop.dragExit(event,ybToolbar.dndObserver);"/>
+        </hbox>
+    
+        <hbox id="ybToolbar-tagsview"  
+          ondragover="nsDragAndDrop.dragOver(event,ybToolbar.dndObserver);"
+          ondragdrop="nsDragAndDrop.drop(event,ybToolbar.dndObserver);"
+                ondragexit="nsDragAndDrop.dragExit(event,ybToolbar.dndObserver);">
+          <hbox id="ybToolbar-tagsview-tags" 
+                            onpopupshowing="ybToolbar.setOpenedMenu(event);"
+                            onpopuphidden="ybToolbar.unsetOpenedMenu(event);" 
+                />
+        </hbox>
+    
+        <hbox id="ybToolbar-bundlesview">
+<!--        <hbox id="ybToolbar-bundlesview-nonbundles">
+                    <toolbarbutton id="ybToolbar-bundles-options" type="menu-button" container="true" class="yb-toolbar-button" command="cmd_yb_toolbar_bundlesview">
+                        <menupopup  id="ybToolbar-bundles-options-popup">
+                                        <menuitem id="ybToolbar-bundles-options-edit" 
+                                            label="&ybtoolbar.bundles.edit.label;" 
+                                            oncommand="ybookmarksMain.loadRelevantPage(event, 'bundles');"
+                                            onclick="ybookmarksMain.loadRelevantPage(event, 'bundles', true);" />
+                        </menupopup>
+                    </toolbarbutton>
+                  </hbox> 
+-->
+          <hbox id="ybToolbar-bundlesview-bundles" 
+                            onpopupshowing="ybToolbar.setOpenedMenu(event);"
+                            onpopuphidden="ybToolbar.unsetOpenedMenu(event);" 
+                />
+        </hbox>
+    
+    
+        <hbox mousethrough="always" id="ybToolbar-overflow-padder" flex="1"
+          ondragover="nsDragAndDrop.dragOver(event,ybToolbar.dndObserver);"
+          ondragdrop="nsDragAndDrop.drop(event,ybToolbar.dndObserver);"
+                ondragexit="nsDragAndDrop.dragExit(event,ybToolbar.dndObserver);"/>
+        <toolbarbutton id="ybToolbar-chevron" type="menu" class="chevron yb-toolbar-button"
+                      mousethrough="never" collapsed="true">
+                      <menupopup onpopupshowing="if (event.target == this) { ybToolbar.updateOverflowMenu(this); }"/>
+        </toolbarbutton>
+        </toolbaritem>
+  </toolbarpalette>
+
+  <!-- the Bookmarks Toolbar -->
+  <toolbox id="navigator-toolbox">
+    <toolbar id="ybToolbar" toolbarname="&ybtoolbar.title;" accesskey="D"
+             defaultset="ybToolbar-toolbar" class="chromeclass-directories" iconsize="small" customizable="true" mode="full"
+                         context="ybToolbar-context-menu" 
+             hidden="false" persist="hidden"
+             insertafter="PersonalToolbar"/>
+  </toolbox>
+
+  
+  <!-- This is hack to update the most recent and frequent menu popup -->
+  <window id="main-window">
+    <tree id="bookmark-sort-tree" datasources="rdf:null" ref="NC:BookmarksRoot" collapsed="true" hidecolumnpicker="true" hidden="true" flags="dont-build-content">
+      <treecols id="bookmark-sort-tree-cols">
+        <treecol id="bookmark-sort-tree-url-col" label="URL" sort="rdf:http://home.netscape.com/NC-rdf#URL" flex="1"/>
+        <treecol id="bookmark-sort-tree-visitdate-col" label="Visit Date" sort="rdf:http://home.netscape.com/WEB-rdf#LastVisitDate" flex="1"/>
+        <treecol id="bookmark-sort-tree-visitcount-col" label="Visit Count" sort="rdf:http://home.netscape.com/NC-rdf#VisitCount" flex="1"/>
+        <treecol id="bookmark-sort-tree-adddate-col" label="Add Date" sort="rdf:http://home.netscape.com/NC-rdf#BookmarkAddDate" flex="1"/>
+      </treecols>
+
+      <template>
+        <rule iscontainer="false">
+          <treechildren>
+            <treeitem>
+              <treerow uri="rdf:*" properties="rdf:http://home.netscape.com/NC-rdf#URL rdf:http://home.netscape.com/NC-rdf#VisitCount rdf:http://home.netscape.com/WEB-rdf#LastVisitDate">
+                <treecell label="rdf:http://home.netscape.com/NC-rdf#URL"/>
+                <treecell label="rdf:http://home.netscape.com/WEB-rdf#LastVisitDate"/>
+                <treecell label="rdf:http://home.netscape.com/NC-rdf#VisitCount"/>
+                <treecell label="rdf:http://home.netscape.com/NC-rdf#BookmarkAddDate"/>
+              </treerow>
+            </treeitem>
+         </treechildren>
+        </rule>
+      </template>
+    </tree>
+
+    <tree id="bookmark-tags-tree" datasources="rdf:null" ref="NC:YBookmarksTagRoot" collapsed="true" hidecolumnpicker="true" hidden="true" flags="dont-build-content">
+      <treecols id="bookmark-tags-tree-cols">
+        <treecol id="bookmark-tags-tree-tag-col" label="Tag" sort="rdf:http://www.mozilla.org/bookmark#tagvalue"/>
+        <treecol id="bookmark-tags-tree-count-col" label="Children" sort="rdf:http://home.netscape.com/NC-rdf#ChildCount"/>
+      </treecols>
+
+      <template>
+        <rule iscontainer="true">
+          <treechildren>
+            <treeitem>
+              <treerow uri="rdf:*">
+                <treecell label="rdf:http://www.mozilla.org/bookmark#tagvalue"/>
+                <treecell label="rdf:http://home.netscape.com/NC-rdf#ChildCount"/>
+              </treerow>
+            </treeitem>
+          </treechildren>
+        </rule>
+      </template>
+    </tree>
+
+  </window>
+  <!-- End of hack -->
+  
+  <!-- Context menu for main content area-->
+  <popup id="contentAreaContextMenu"> 
+        <menuitem id="yb-context-tagCurrent-aftersearch"
+              insertafter="context-searchselect"
+              label="&ybookmarks.context.tagCurrent.label;"
+              image="chrome://ybookmarks/skin/deliciousSmall.gif"
+              class="menuitem-iconic"
+              command="cmd_yb_bookmark_this_page"/> 
+        <menuitem id="yb-context-tagCurrent"
+              insertafter="context-bookmarkpage"
+              label="&ybookmarks.context.tagCurrent.label;"
+              class="menuitem-iconic"
+              image="chrome://ybookmarks/skin/deliciousSmall.gif"
+              command="cmd_yb_bookmark_this_page"/> 
+         <menuitem id="yb-context-tagLink"
+          insertafter="context-bookmarklink"
+              label="&ybookmarks.context.tagLink.label;"
+              class="menuitem-iconic"
+              image="chrome://ybookmarks/skin/deliciousSmall.gif"
+             oncommand="yAddBookMark.open((typeof(gContextMenu.linkURL)=='string' ? gContextMenu.linkURL : gContextMenu.linkURL()), gContextMenu.linkText());"/>
+         <menuitem id="yb-context-keywordfield"
+              insertafter="context-keywordfield"
+              label="&ybookmarks.context.keyword.label;"
+              class="menuitem-iconic"
+              image="chrome://ybookmarks/skin/deliciousSmall.gif"
+              oncommand="yAddBookMark.createSearchKeywordBookmark();"/>             
+  </popup>
+    
+</overlay>

@@ -1,0 +1,575 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://ybookmarks/skin/options.css" type="text/css"?>
+<!DOCTYPE window SYSTEM "chrome://ybookmarks/locale/options.dtd">
+
+
+<prefwindow id="ybookmarks_OptionsWindow"
+  type="prefwindow"
+  windowtype="" 
+  xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+  dlgbuttons="accept,cancel" 
+  title="Delicious Options"
+  height="610"
+  width="500"
+  ondialogaccept="ybookmarks_Options_askForRestart();"
+  ondialogcancel="ybookmarks_Options_restoreChangedOptions();">
+  
+  <stringbundleset id="stringbundleset">
+    <stringbundle id="strbndl_idManager" src="chrome://ybookmarks/locale/idManager.properties"/>
+    <stringbundle id="ybookmarks-strings" src="chrome://ybookmarks/locale/ybookmarks.properties"/>
+    <stringbundle id="bundle-bookmarks" src="chrome://browser/locale/bookmarks/bookmarks.properties"/>
+    <stringbundle id="ybookmarks-option-strings" src="chrome://ybookmarks/locale/options.properties"/>
+  </stringbundleset>
+
+  <script src="chrome://ybookmarks/content/providerApis.js" type="application/x-javascript" />
+  <script src="chrome://ybookmarks/content/loginwindow.js" type="application/x-javascript" />
+  <script src="chrome://ybookmarks/content/yAddBookMark.js" type="application/x-javascript" />
+  <script src="chrome://ybookmarks/content/yDebug.js" type="application/x-javascript" />
+  <script src="chrome://ybookmarks/content/ybookmarksUtils.js" type="application/x-javascript" />
+  <script src="chrome://browser/content/utilityOverlay.js" type="application/x-javascript" />
+  <script src="chrome://ybookmarks/content/idManager.js" type="application/x-javascript" />
+  <script type="application/x-javascript" src="chrome://ybookmarks/content/options.js"/>
+  <script type="application/x-javascript" src="chrome://ybookmarks/content/ybMenus.js"/>
+
+  <prefpane id="paneYBookmarks" onpaneload="ybookmarks_InitOptions();" helpURI="chrome://browser/locale/help/help.rdf">
+    <preferences>
+      <preference id="pref-ybookmarks-addmechanism" name="extensions.ybookmarks@yahoo.addmechanism" 
+                 type="int"/>
+      <preference id="pref-ybookmarks-flush-timer" name="extensions.ybookmarks@yahoo.flush.timer" 
+                 type="int"/>
+
+      <preference id="pref-ybookmarks-tagsview-overflow-enable"
+                              name="extensions.ybookmarks@yahoo.tagsview.overflow.enable" 
+                    type="bool" />
+      <preference id="pref-ybookmarks-tagsview-overflow-removefromtoplevel" 			
+                              name="extensions.ybookmarks@yahoo.tagsview.overflow.remove_from_toplevel" 
+                    type="bool" />
+      <preference id="pref-ybookmarks-tagsview-overflow-level" 
+                              name="extensions.ybookmarks@yahoo.tagsview.overflow.level" 
+                              type="int" />
+      <preference id="pref-ybookmarks-tagsview-overflow-spillover-max" 	
+                              name="extensions.ybookmarks@yahoo.tagsview.overflow.spillover.max" 
+                              type="int" />
+      <preference id="pref-ybookmarks-tagsview-overflow-spillover-minsize" 
+                    name="extensions.ybookmarks@yahoo.tagsview.overflow.spillover.minsize" 
+                              type="int" />
+      <preference id="pref-ybookmarks-original-ui-hide"
+                              name="extensions.ybookmarks@yahoo.original.ui.hide"
+                              type="bool" />
+      <preference id="pref-ybookmarks-original-keybindings-remap"
+                              name="extensions.ybookmarks@yahoo.original.keybindings.remap"
+                              type="bool" 
+                              inverted="true"/>
+      <preference id="pref-ybookmarks-original-add-suggest-delicious"
+                              name="extensions.ybookmarks@yahoo.original.add.suggest.delicious"
+                              type="bool" />
+      <preference id="pref-ybookmarks-original-keyword-conflicts-warn"
+                              name="extensions.ybookmarks@yahoo.original.keyword.conflicts.warn"
+                              type="bool" />
+      <preference id="pref-ybookmarks-debug"
+                              name="extensions.ybookmarks@yahoo.debug"
+                              type="bool" />
+      <preference id="pref-ybookmarks-bookmark-notes-truncateautomatically"
+                              name="extensions.ybookmarks@yahoo.bookmark.notes.truncate_automatically"
+                              type="bool" />
+      <preference id="pref-ybookmarks-bookmark-delete-warn"
+                              name="extensions.ybookmarks@yahoo.bookmark.delete.warn"
+                              type="bool" />
+      <preference id="pref-ybookmarks-bundles-menu-includebookmarks"
+                              name="extensions.ybookmarks@yahoo.bundles.menu.include_bookmarks"
+                              type="bool" />
+
+      <preference id="pref-ybookmarks-statusbaricons-includetagometer"
+                               name="extensions.ybookmarks@yahoo.statusbaricons.include_tagometer"
+                               type="bool" />
+
+      <preference id="pref-ybookmarks-statusbaricons-includelinksforyou"
+                               name="extensions.ybookmarks@yahoo.statusbaricons.include_linksforyou"
+                               type="bool" />
+
+      <preference id="pref-ybookmarks-statusbaricons-includenetworkreminder"
+									 name="extensions.ybookmarks@yahoo.statusbaricons.disable_networkreminder"
+									 inverted="true"
+									 type="bool" />
+
+      <preference id="pref-ybookmarks-statusbaricons-includedeliciousicon"
+									 name="extensions.ybookmarks@yahoo.statusbaricons.disable_delicious_icon"
+                   inverted="true" 
+									 type="bool" />
+
+
+      <preference id="pref-ybookmarks-keybindings-add"
+                               name="extensions.ybookmarks@yahoo.keybindings.add.key"
+                               type="string" />
+      <preference id="pref-ybookmarks-keybindings-add-modifiers"
+                         name="extensions.ybookmarks@yahoo.keybindings.add.modifiers"
+                         type="string" />
+      
+      <preference id="pref-ybookmarks-keybindings-sidebar"
+                           name="extensions.ybookmarks@yahoo.keybindings.sidebar.key"
+                           type="string" />
+      <preference id="pref-ybookmarks-keybindings-sidebar-modifiers"
+                         name="extensions.ybookmarks@yahoo.keybindings.sidebar.modifiers"
+                         type="string" />
+
+      <preference id="pref-ybookmarks-keybindings-delBookmarkPage"
+                         name="extensions.ybookmarks@yahoo.keybindings.delBookmarkPage.key"
+                         type="string" />
+      <preference id="pref-ybookmarks-keybindings-delBookmarkPage-modifiers"
+                         name="extensions.ybookmarks@yahoo.keybindings.delBookmarkPage.modifiers"
+                         type="string" />
+
+      <preference id="pref-ybookmarks-keybindings-delSidebar"
+                         name="extensions.ybookmarks@yahoo.keybindings.delSidebar.key"
+                         type="string" />
+      <preference id="pref-ybookmarks-keybindings-delSidebar-modifiers"
+                         name="extensions.ybookmarks@yahoo.keybindings.delSidebar.modifiers"
+                         type="string" />
+
+      <preference id="pref-ybookmarks-keybindings-bookmarksOnDelicious"
+                         name="extensions.ybookmarks@yahoo.keybindings.bookmarksOnDelicious.key"
+                         type="string" />
+      <preference id="pref-ybookmarks-keybindings-bookmarksOnDelicious-modifiers"
+                         name="extensions.ybookmarks@yahoo.keybindings.bookmarksOnDelicious.modifiers"
+                         type="string" />
+
+      <preference id="pref-ybookmarks-keybindings-jumpToTag"
+                         name="extensions.ybookmarks@yahoo.keybindings.jumpToTag.key"
+                         type="string" />
+      <preference id="pref-ybookmarks-keybindings-jumpToTag-modifiers"
+                         name="extensions.ybookmarks@yahoo.keybindings.jumpToTag.modifiers"
+                         type="string" />
+
+      <!-- awesomebar related preferences -->
+      <preference id="pref-ybookmarks-awesomebar-delicious-search"
+                         name="extensions.ybookmarks@yahoo.awesomebar.showDeliciousSearch"
+                         type="bool" />
+      <preference id="pref-ybookmarks-awesomebar-only-delicious-search"
+                         name="extensions.ybookmarks@yahoo.awesomebar.showOnlyDeliciousSearch"
+                         type="bool" />
+      <preference id="pref-ybookmarks-awesomebar-delicious-tags"
+                         name="extensions.ybookmarks@yahoo.awesomebar.showDeliciousTags"
+                         type="bool" />
+    </preferences>
+
+
+    <tabbox id="ybPrefBookmarksTabBox" height="580">
+      <tabs>
+        <tab id="ybPrefBookmarksGeneralTab" label="&yboptions.tab.general.label;" />
+        <tab id="ybPrefBookmarksToolbarTab" label="&yboptions.tab.toolbar.label;" hidden="true"/>
+        <tab id="ybPrefBookmarksAdvancedTab" label="&yboptions.tab.advanced.label;"/>
+        <tab id="ybPrefBookmarksDebugTab" label="&yboptions.tab.debug.label;" hidden="true"/>
+        <tab id="ybPrefBookmarksClassicTab" label="&yboptions.tab.general.label;"  hidden="true"/>
+        <tab id="ybPrefBookmarksCustomShortcutsTab" label="&yboptions.tab.customShortcuts.label;" oncommand="ybookmarks_Options_onloadDisableNoneShortcuts();"/>
+        <tab id="ybPrefBookmarksAwesomebarTab" label="&yboptions.tab.awesomebar.label;" hidden="true"/>
+      </tabs>    
+      <!-- width="475" height="550" -->
+      <tabpanels>
+        <tabpanel id="ybPrefGeneralTabPanel"  orient="vertical" align="start">
+          <vbox class="yb_options_content">
+
+            <groupbox align="start">
+              <caption label="&delicious.account.caption;" class="options-caption" />
+              <!-- <description id="ybookmarks-account-desc"/>
+		        <spacer height="5"/>
+		        <description id="ybookmarks-account-user"/> -->
+              <!-- <html:ul>
+		          <html:li><label id="ybookmarks-account-login" class="link"/></html:li>
+		          <html:li><label id="ybookmarks-account-create" class="link"/></html:li>
+		        </html:ul> -->
+              <vbox id="yb-wiz-done-tips">
+                <hbox>
+                  <label id="ybookmarks-account-user-pre" class="no-right-margin"/>
+                  <label id="ybookmarks-account-user" class="link no-right-margin" />
+                  <label id="ybookmarks-account-user-post" />
+                </hbox>
+                <spacer class="line"/>
+                <label id="ybookmarks-account-login" class="link"/>
+                <spacer class="line"/>
+                <label id="ybookmarks-account-create" class="link"/>
+                <spacer class="line"/>
+              </vbox>
+            </groupbox>            
+            <groupbox align="start">
+              <caption label="&delicious.sync.caption;" class="options-caption" />
+              <description>&delicious.sync.desc;</description>
+              <button id="btn_syncLink" label="&delicious.sync.link;"  
+                         accesskey="&delicious.sync.accesskey;" oncommand="ybookmarks_sync();" />
+            </groupbox>            
+            <groupbox align="start">
+              <caption label="&delicious.statusbaricons.caption;" class="options-caption"/>
+              <checkbox id="pref-ybookmarks-statusbaricons-deliciousicon-checkbox" 
+                                    label="&delicious.statusbaricons.deliciousicon.label;"
+                                    preference="pref-ybookmarks-statusbaricons-includedeliciousicon"/>
+
+              <checkbox id="pref-ybookmarks-statusbaricons-includelinksforyou-checkbox" 
+                          label="&delicious.statusbaricons.linksforyou.label;"
+                          preference="pref-ybookmarks-statusbaricons-includelinksforyou"/>
+              <checkbox id="pref-ybookmarks-statusbaricons-includenetworkreminder-checkbox" 
+                          label="&delicious.statusbaricons.networkreminder.label;"								
+                          preference="pref-ybookmarks-statusbaricons-includenetworkreminder"/>
+            </groupbox>
+
+            <hbox align="right">
+              <label value="&delicious.about.link;" class="text-link" 
+                     onclick="ybookmarks_Options_showHelpPage();" />
+            </hbox>
+
+          </vbox>
+        </tabpanel>
+        <tabpanel orient="vertical">          
+          <vbox class="yb_options_content">
+            <groupbox>
+              <caption label="&ybtoolbar.tagsview.label;" class="options-caption" />
+              <hbox align="center">
+                <checkbox id="pref-ybookmarks-tagsview-overflow-enable-checkbox"
+                                    label="&ybtoolbar.tagsview.overflow.enable.label;"
+                                preference="pref-ybookmarks-tagsview-overflow-enable"
+                                oncommand="ybookmarks_Options_onTagsViewOverflowEnable(event.target);"/>
+                <spacer flex="1"/>
+                <button label="&ybtoolbar.tagsview.overflow.restore_defaults.label;" oncommand="ybookmarks_Options_overflowOnRestoreDefaults();" />
+              </hbox>
+
+              <hbox align="center">
+                <spacer class="checkbox" />
+                <checkbox id="pref-ybookmarks-tagsview-overflow-removefromtoplevel-checkbox"
+                                    label="&ybtoolbar.tagsview.overflow.removefromtoplevel.label;"
+                                  preference="pref-ybookmarks-tagsview-overflow-removefromtoplevel"/>
+              </hbox>
+              <hbox align="center">
+                <spacer class="checkbox" />
+                <textbox id="pref-ybookmarks-tagsview-overflow-level-box" class="padded"
+                         preference="pref-ybookmarks-tagsview-overflow-level" 
+                                 value=""
+                         size="2"/>
+                <label id="pref-ybookmarks-tagsview-overflow-level-label" 
+                           value="&ybtoolbar.tagsview.overflow.level.label;" 
+                           control="pref-ybookmarks-tagsview-overflow-level-box"/>
+              </hbox>
+              <hbox align="center">
+                <spacer class="checkbox" />
+                <textbox id="pref-ybookmarks-tagsview-overflow-spillover-max-box"
+                                 preference="pref-ybookmarks-tagsview-overflow-spillover-max" 
+                                 value=""
+                         size="2"/>
+                <label id="pref-ybookmarks-tagsview-overflow-spillover-max-label" 
+                         value="&ybtoolbar.tagsview.overflow.spillover.max.label;"
+                         control="pref-ybookmarks-tagsview-overflow-spillover-max-box"/>
+              </hbox>
+              <hbox align="center">
+                <spacer class="checkbox" />
+                <textbox id="pref-ybookmarks-tagsview-overflow-spillover-minsize-box"
+                                 preference="pref-ybookmarks-tagsview-overflow-spillover-minsize"
+                                 value=""
+                                 size="2"/>
+                <label id="pref-ybookmarks-tagsview-overflow-spillover-minsize-label"
+                             value="&ybtoolbar.tagsview.overflow.spillover.minsize.label;"
+                             control="pref-ybookmarks-tagsview-overflow-spillover-minsize-box"/>
+              </hbox>
+
+            </groupbox>
+            <groupbox>
+              <caption label="&ybtoolbar.bundlesview.label;" class="options-caption" />
+              <checkbox id="pref-ybookmarks-bundles-menu-includebookmarks-checkbox"
+                                  label="&ybtoolbar.bundles.menu.includebookmarks.label;"
+                                preference="pref-ybookmarks-bundles-menu-includebookmarks"/>
+            </groupbox>
+          </vbox>          
+        </tabpanel>
+        <tabpanel orient="vertical" align="start" >          
+          <vbox class="yb_options_content">
+            <groupbox align="start">
+              <caption label="&delicious.delicious.caption;" class="options-caption"/>
+              <checkbox id="pref-ybookmarks-bookmark-delete-warn-checkbox" 
+                                preference="pref-ybookmarks-bookmark-delete-warn" label="&delicious.bookmark.delete.warn;"/>
+              <checkbox id="pref-ybookmarks-bookmark-notes-truncateautomatically-checkbox" 
+                                  label="&delicious.bookmark.notes.truncate_automatically;"
+                              preference="pref-ybookmarks-bookmark-notes-truncateautomatically"/>
+
+            </groupbox>
+            <groupbox align="start">
+              <caption label="&delicious.original.ui.caption;" class="options-caption" />
+
+              <checkbox id="pref-ybookmarks-original-ui-hide-checkbox"
+                                  label="&delicious.original.ui.hide.label;"
+                                preference="pref-ybookmarks-original-ui-hide"
+                                  oncommand="ybookmarks_Options_onOriginalUIHide(event.target);"/>
+
+              <checkbox id="pref-ybookmarks-original-add-suggest-delicious-checkbox"
+                                  label="&delicious.original.add.suggest.delicious.label;"
+                                preference="pref-ybookmarks-original-add-suggest-delicious"/>
+              <checkbox id="pref-ybookmarks-original-keyword-conflicts-warn-checkbox"
+                                  label="&delicious.original.keyword.conflicts.warn.label;"
+                                preference="pref-ybookmarks-original-keyword-conflicts-warn"/>
+            </groupbox>
+            <groupbox align="start">
+              <caption label="&delicious.sync.caption;" class="options-caption" />
+              <description>&delicious.fullsync.desc;</description>
+              <hbox align="center">
+                <button id="btn_fullsyncLink" label="&delicious.fullsync.link;"  
+                        accesskey="&delicious.fullsync.accesskey;" oncommand="ybookmarks_forceRefresh();" />
+                <hbox />
+
+                <description hidden="true" id="desc_syncStatus" >&delicious.sync.status;</description>
+              </hbox>
+            </groupbox>
+
+            <groupbox align="start">
+              <caption label="&delicious.switchTo.modeClassic.title;" class="options-caption" />
+              <description>&delicious.switchTo.modeClassic.desc;</description>
+              <hbox align="center">
+                <button id="btn_classic_mode"
+                  label="&delicious.switchTo.modeClassic.label;" 
+                  oncommand="YBidManager.switchToClassicModeWarning();" />
+                <hbox />                
+              </hbox>
+            </groupbox>            
+            </vbox>
+          
+        </tabpanel>
+        <tabpanel orient="vertical" align="start" >
+          <vbox class="yb_options_content">
+            <checkbox id="pref-ybookmarks-debug-checkbox"
+                        label="&delicious.debug.label;"
+                      preference="pref-ybookmarks-debug"/>
+
+            <hbox>
+              <button id="btn_logLink" label="&delicious.log.link;" 
+                      oncommand="ybookmarks_Options_openLog();" />
+              <hbox />
+            </hbox>            
+          </vbox>
+        </tabpanel>
+        
+        <!-- Classic mode panel-->       
+        <tabpanel id="ybPrefClassicTabPanel" orient="vertical" align="start" >          
+          <groupbox align="start">
+            <caption label="&delicious.switchTo.modeStandard.title;" class="options-caption" />
+            <description>&delicious.switchTo.modeStandard.desc;</description>
+            <hbox align="center">
+              <button id="btn_standard_mode"
+                  label="&delicious.switchTo.modeStandard.label;" 
+                  oncommand="YBidManager.switchToStandardMode();" />
+            </hbox>
+          </groupbox>
+        </tabpanel>
+
+        <tabpanel orient="vertical" align="start">
+          <vbox class="yb_options_content">
+            <spacer height="10" />
+          <hbox>
+            <checkbox id="pref-ybookmarks-original-keybindings-remap-checkbox"
+                                label="&delicious.original.keybindings.remap.label;"
+                              preference="pref-ybookmarks-original-keybindings-remap" 
+                            oncommand="ybookmarks_Options_disableFFCustomShortcuts(this); gKeyMapChanged = true;"/>
+          </hbox>
+
+            <spacer height="10" />
+          <groupbox>
+            <caption label="&delicious.delShortcuts.caption;" class="options-caption"/>
+              <grid>
+                <rows>
+                  <row align="center">
+                    <description minwidth="240">&delicious.shortcuts.addBookmark;</description>
+                    <hbox align="center">
+                      <menulist id="pref-ybookmarks-keybindings-delBookmarkPage-modifiers-list"  
+                                preference="pref-ybookmarks-keybindings-delBookmarkPage-modifiers"
+                                oncommand="ybookmarks_Options_oncommand_modifiers(this, 'pref-ybookmarks-keybindings-delBookmarkPage-textbox');">
+                        <menupopup>
+                          <menuitem label="&delicious.shortcuts.ctrl;" value="accel"/>
+                          <menuitem label="&delicious.shortcuts.ctrl; + &delicious.shortcuts.shift;" value="accel,shift"/>
+                          <menuitem label="&delicious.shortcuts.none;" value="none"/>
+                        </menupopup>
+                      </menulist>
+                      <label value=" + "/>
+                      <textbox id="pref-ybookmarks-keybindings-delBookmarkPage-textbox" 
+                        size="1" 
+                        maxlength="1" 
+                        oninput="ybookmarks_Options_oninput_textbox(this);" 
+                        preference="pref-ybookmarks-keybindings-delBookmarkPage"/>
+                    </hbox>
+                  </row>
+                  <row align="center">
+                    <description minwidth="240">&delicious.shortcuts.openSidebar;</description>
+                    <hbox align="center">
+                      <menulist id="pref-ybookmarks-keybindings-delSidebar-modifiers-list" 
+                                preference="pref-ybookmarks-keybindings-delSidebar-modifiers"
+                                oncommand="ybookmarks_Options_oncommand_modifiers(this, 'pref-ybookmarks-keybindings-delSidebar-textbox');">
+                        <menupopup>
+                          <menuitem label="&delicious.shortcuts.ctrl;" value="accel"/>
+                          <menuitem label="&delicious.shortcuts.ctrl; + &delicious.shortcuts.shift;" value="accel,shift"/>
+                          <menuitem label="&delicious.shortcuts.none;" value="none"/>
+                        </menupopup>
+                      </menulist>
+                      <label value=" + "/>
+                      <textbox id="pref-ybookmarks-keybindings-delSidebar-textbox" 
+                        size="1" 
+                        maxlength="1" 
+                        oninput="ybookmarks_Options_oninput_textbox(this);" 
+                        preference="pref-ybookmarks-keybindings-delSidebar"/>
+                    </hbox>
+                  </row>
+                  <row align="center">
+                    <description minwidth="240">&delicious.shortcuts.deliciousBookmarks;</description>
+                    <hbox align="center">
+                      <menulist id="pref-ybookmarks-keybindings-bookmarksOnDelicious-modifiers-list"  
+                                preference="pref-ybookmarks-keybindings-bookmarksOnDelicious-modifiers"
+                                oncommand="ybookmarks_Options_oncommand_modifiers(this, 'pref-ybookmarks-keybindings-bookmarksOnDelicious-textbox');">
+                        <menupopup>
+                          <menuitem label="&delicious.shortcuts.ctrl;" value="accel"/>
+                          <menuitem label="&delicious.shortcuts.ctrl; + &delicious.shortcuts.shift;" value="accel,shift"/>
+                          <menuitem label="&delicious.shortcuts.none;" value="none"/>
+                        </menupopup>
+                      </menulist>
+                      <label value=" + "/>
+                      <textbox id="pref-ybookmarks-keybindings-bookmarksOnDelicious-textbox" 
+                        size="1" 
+                        maxlength="1" 
+                        oninput="ybookmarks_Options_oninput_textbox(this);" 
+                        preference="pref-ybookmarks-keybindings-bookmarksOnDelicious"/>
+                    </hbox>
+                  </row>
+                  <row align="center">
+                    <description minwidth="240">&delicious.shortcuts.jumpToTag;</description>
+                    <hbox align="center">
+                      <menulist id="pref-ybookmarks-keybindings-jumpToTag-modifiers-list"  
+                                preference="pref-ybookmarks-keybindings-jumpToTag-modifiers"
+                                oncommand="ybookmarks_Options_oncommand_modifiers(this, 'pref-ybookmarks-keybindings-jumpToTag-textbox');">
+                        <menupopup>
+                          <menuitem label="&delicious.shortcuts.ctrl;" value="accel"/>
+                          <menuitem label="&delicious.shortcuts.ctrl; + &delicious.shortcuts.shift;" value="accel,shift"/>
+                          <menuitem label="&delicious.shortcuts.none;" value="none"/>
+                        </menupopup>
+                      </menulist>
+                      <label value=" + "/>
+                      <textbox id="pref-ybookmarks-keybindings-jumpToTag-textbox" 
+                        size="1" 
+                        maxlength="1" 
+                        oninput="ybookmarks_Options_oninput_textbox(this);" 
+                        preference="pref-ybookmarks-keybindings-jumpToTag"/>
+                    </hbox>
+                  </row>
+                </rows>
+              </grid>
+          </groupbox>
+
+            <spacer height="10" />
+            
+          <groupbox>
+            <caption label="&delicious.firefoxShortcuts.caption;" class="options-caption"/>
+              <grid>
+                <rows>
+                  <row align="center">
+                    <description minwidth="240">&delicious.shortcuts.addBookmarkToFF;</description>
+                    <hbox align="center">
+                      <menulist id="pref-ybookmarks-keybindings-add-modifiers-list"  
+                                preference="pref-ybookmarks-keybindings-add-modifiers"
+                                oncommand="ybookmarks_Options_oncommand_modifiers(this, 'pref-ybookmarks-keybindings-add-textbox');">
+                        <menupopup>
+                          <menuitem label="&delicious.shortcuts.ctrl;" value="accel"/>
+                          <menuitem label="&delicious.shortcuts.ctrl; + &delicious.shortcuts.shift;" value="accel,shift"/>
+                          <menuitem label="&delicious.shortcuts.none;" value="none"/>
+                        </menupopup>
+                      </menulist>
+                      <label value=" + "/>
+                      <textbox id="pref-ybookmarks-keybindings-add-textbox" 
+                        size="1" 
+                        maxlength="1" 
+                        oninput="ybookmarks_Options_oninput_textbox(this);" 
+                        preference="pref-ybookmarks-keybindings-add"/>
+                    </hbox>
+                  </row>
+                  <row align="center">
+                    <description minwidth="240">&delicious.shortcuts.openBookmarksFF;</description>
+                    <hbox align="center">
+                      <menulist id="pref-ybookmarks-keybindings-sidebar-modifiers-list"  
+                                preference="pref-ybookmarks-keybindings-sidebar-modifiers"
+                                oncommand="ybookmarks_Options_oncommand_modifiers(this, 'pref-ybookmarks-keybindings-sidebar-textbox');">
+                        <menupopup>
+                          <menuitem label="&delicious.shortcuts.ctrl;" value="accel"/>
+                          <menuitem label="&delicious.shortcuts.ctrl; + &delicious.shortcuts.shift;" value="accel,shift"/>
+                          <menuitem label="&delicious.shortcuts.none;" value="none"/>
+                        </menupopup>
+                      </menulist>
+                      <label value=" + "/>
+                      <textbox id="pref-ybookmarks-keybindings-sidebar-textbox" 
+                        size="1" 
+                        maxlength="1" 
+                        oninput="ybookmarks_Options_oninput_textbox(this);" 
+                        preference="pref-ybookmarks-keybindings-sidebar"/>
+                    </hbox>
+                  </row>
+                </rows>
+              </grid>
+          </groupbox>
+            <spacer height="10" />
+            <hbox>
+              <button label="&delicious.shortcuts.restoreDefault;" accesskey="R" oncommand="ybookmarks_Options_shortcutsOnRestoreDefaults();"/>
+            </hbox>
+            <spacer height="20"/>
+            <hbox id="mac-restart" align="center" hidden="true">
+              <description>&delicious.shortcuts.restartFirefox;</description>
+              <button label="&delicious.shortcuts.restartButton;" oncommand="ybookmarks_Options_savePrefs(); ybookmarksUtils._quit(true);"/>
+            </hbox>
+          </vbox>
+        </tabpanel>
+
+        <!-- Tab panel for awesome bar preferences -->
+        <tabpanel orient="vertical" align="start" >
+          <groupbox align="start">
+            <caption label="&delicious.awesomebar.caption;" class="options-caption" />
+            <vbox class="yb_options_content">
+              <checkbox id="pref-ybookmarks-awesomebar-integration-enable"
+                          label="&delicious.awesomebar.enable;"
+                          onclick="ybookmarksOptionsToggleAwesomeBarIntegration(this);"/>
+              
+              <checkbox id="pref-ybookmarks-awesomebar-delicious-search-checkbox"
+                          label="&delicious.awesomebar.showDeliciousSearch;"
+                        preference="pref-ybookmarks-awesomebar-delicious-search"
+                        onclick="window.setTimeout(ybookmarksOptionsCheckAwesomeBarIntegration, 0, null);"/>
+
+              <checkbox id="pref-ybookmarks-awesomebar-only-delicious-search-checkbox"
+                            label="&delicious.awesomebar.showOnlyDeliciousSearch;"
+                          preference="pref-ybookmarks-awesomebar-only-delicious-search"
+                          onclick="window.setTimeout(ybookmarksOptionsCheckAwesomeBarIntegration, 0, null);"/>
+
+              <checkbox id="pref-ybookmarks-awesomebar-delicious-tags-checkbox"
+                          label="&delicious.awesomebar.showDeliciousTags;"
+                        preference="pref-ybookmarks-awesomebar-delicious-tags"
+                        onclick="window.setTimeout(ybookmarksOptionsCheckAwesomeBarIntegration, 0, null);"/>
+
+              <spacer height="20" />
+              <hbox align="center">
+                <label value="&delicious.awesomebar.deliciousSearchOrderBy;"/>
+                <radiogroup id="pref-ybookmarks-awesomebar-orderby"  orient="horizontal">
+                  <radio id="pref-ybookmarks-awesomebar-orderby-site" label="Site" value="Site" onclick="window.setTimeout(ybookmarksOptionsAwesomeBarOrderBy, 0, this);"/>
+                  <radio id="pref-ybookmarks-awesomebar-orderby-title" label="Title" value="Name" onclick="window.setTimeout(ybookmarksOptionsAwesomeBarOrderBy, 0, this);"/>
+                  <radio id="pref-ybookmarks-awesomebar-orderby-lastadded" label="Last Added" value="LastAdded" onclick="window.setTimeout(ybookmarksOptionsAwesomeBarOrderBy, 0, this);"/>
+                </radiogroup>
+              </hbox>
+              <spacer height="10" />
+              <hbox align="center">
+                <label value="&delicious.awesomebar.maxRowsDeliciousSearch;"/>
+                <textbox id="pref-ybookmarks-awesomebar-max-result-rows" size="3" onfocus="this.select();" oninput="ybookmarksOptionsAwesomebarMaxResultRows();" />
+              </hbox>
+              <spacer height="10" />
+              <hbox align="center">
+                <label value="&delicious.awesomebar.historyMaxRows;"/>
+                <textbox id="pref-ybookmarks-awesomebar-max-history-rows" size="3" onfocus="this.select();" oninput="ybookmarksOptionsAwesomebarMaxHistoryRows();" />
+              </hbox>
+              <spacer height="10" />
+            </vbox>
+          </groupbox>
+
+          <spacer height="20" />
+          <label value="&delicious.awesomebar.restartNote;"/>
+        </tabpanel>
+
+      </tabpanels>
+    </tabbox>
+
+  </prefpane>
+
+</prefwindow>
+

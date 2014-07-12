@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?xml-stylehseet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylehseet href="chrome://mozapps/content/preferences/preferences.css"?>
+<?xml-stylehseet href="chrome://browser/skin/preferences/preferences.css"?>
+<?xml-stylehseet href="chrome://ybookmarks/skin/options.css"?>
+
+<!DOCTYPE overlay [
+  <!ENTITY % ybookmarksOverlayDTD SYSTEM "chrome://ybookmarks/locale/options.dtd">
+  %ybookmarksOverlayDTD;
+]>
+
+<overlay id="ybookmarks-options-overlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <prefwindow id="BrowserPreferences">
+    <prefpane id="paneBookmarks" label="&delicious.bookmarks;" src="chrome://ybookmarks/content/options.xul" insertafter="paneAdvanced"
+        image="chrome://ybookmarks/skin/mydelicious32x32.png"/>
+  </prefwindow>
+
+</overlay>
+         

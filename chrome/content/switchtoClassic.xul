@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://ybookmarks/skin/idDialogs.css" type="text/css"?>
+
+<!DOCTYPE page SYSTEM "chrome://ybookmarks/locale/idManager.dtd">
+
+<dialog
+   id="dlg_switchClassic" 
+   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+   xmlns:html="http://www.w3.org/1999/xhtml"
+	 buttons="accept,cancel"
+	 ondialogaccept="return YBidManager.modeChangeToClassic();"
+   persist="screenX screenY"
+   title="&loggedOut.title;">
+  <script src="chrome://ybookmarks/content/ybookmarksUtils.js" type="application/x-javascript" />  
+  <script src="chrome://ybookmarks/content/toolbar.js" type="application/x-javascript" /> 
+  <script src="chrome://ybookmarks/content/idManager.js" type="application/x-javascript" />
+  <script src="chrome://ybookmarks/content/yDebug.js" type="application/x-javascript" />
+  <script src="chrome://ybookmarks/content/providerApis.js" type="application/x-javascript" />  
+
+  <stringbundleset>
+    <stringbundle id="strbndl_idManager" src="chrome://ybookmarks/locale/idManager.properties"/>
+  </stringbundleset>
+	
+	<vbox class="singly-padded" width="500">
+ 
+		<description>&modeSwitch.toClassic;</description>
+		<spacer class="line" />
+		<radiogroup id="ybLoggedOut-radio">
+			<radio id="ybLoggedOut-radio-keep" label="&loggedOut.keep;" value="0" />
+			<radio id="ybLoggedOut-radio-remove" label="&loggedOut.remove;" value="1" />
+		</radiogroup>
+		<spacer class="line" />
+		<checkbox id="ybRestartNow" label="&modeSwitch.restartWarningText;" checked="true"/>
+	</vbox>
+</dialog>

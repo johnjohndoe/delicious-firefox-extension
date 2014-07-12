@@ -1,0 +1,68 @@
+#BrowserPreferences radio[pane=paneBookmarks], radio[pane=paneBookmarks] {
+  list-style-image: url("chrome://ybookmarks/skin/mydelicious32x32.png") !important;
+}
+
+radio[pane=paneBookmarks]:hover {
+  list-style-image: url("chrome://ybookmarks/skin/mydelicious32x32.png") !important;
+}
+
+radio[pane=paneTabs][selected="true"] {
+  list-style-image: url("chrome://ybookmarks/skin/mydelicious32x32.png") !important;
+}
+
+#paneBookmarks {
+  font: -moz-dialog;
+}
+
+#paneBookmarks  description {
+  font: -moz-dialog;
+}
+
+#paneBookmarks checkbox:focus > .checkbox-label-box {
+  border-top-color: transparent !important;
+  border-bottom-color: transparent !important;
+  border-right-color: transparent !important;
+  border-left-color: transparent !important;
+}
+
+#ybPrefBookmarksTabBox {
+  margin: 0px 8px 20px 8px;
+}
+.checkbox-label {
+  padding-left: 10px;
+}
+
+.link {
+  text-decoration: underline !important;
+  color: #0000ff;
+  cursor: pointer;
+}
+
+.yb_options_content {
+  width: 500px;
+}
+
+#yb_classic_options_content {
+  width: 500px;
+}
+
+.options-caption {
+  font-weight: bold;
+}
+
+.no-margin {
+  margin-left: 0px;
+  margin-right: 0px;
+}
+
+.no-right-margin {
+  margin-right: 0px;
+}
+
+spacer.line {
+  height: 0.7em;
+}
+
+spacer.checkbox {
+    width: 2em;
+}

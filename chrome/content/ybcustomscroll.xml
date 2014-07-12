@@ -1,0 +1,300 @@
+<?xml version="1.0"?>
+
+<bindings xmlns="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <binding id="ybcustomscroll">
+      <resources>
+        <script src="chrome://ybookmarks/content/ybookmarksUtils.js" type="application/x-javascript" />
+      </resources>
+	  
+	  <handlers>
+	   <handler event="mousedown" phase="capturing">
+ 				<![CDATA[
+ 					try {
+ 						yDebug.print("ybcustomscroll:mousedown", YB_LOG_MESSAGE);
+ 						
+ 						var tgt = event.originalTarget;
+ 						
+ 						if(tgt.getAttribute("anonid") == "suggestScrollUp") {
+  							var self = this;
+ 							this.scrollTimer.initWithCallback(function () { 
+				 							self.scrollUp();
+ 										}, 150, Components.interfaces.nsITimer.TYPE_REPEATING_SLACK);
+ 						}
+ 						
+ 						if(tgt.getAttribute("anonid") == "suggestScrollDown") {
+  							var self = this;
+ 							this.scrollTimer.initWithCallback(function () { 
+				 							self.scrollDown();
+ 										}, 150, Components.interfaces.nsITimer.TYPE_REPEATING_SLACK);
+ 						}
+ 					} catch(e) {
+ 						yDebug.print("ybcustomscroll::mousedown::Error:"+e, YB_LOG_MESSAGE);
+ 					}
+ 				]]>	 			
+	 		</handler>
+	 		<handler event="mouseup" phase="capturing">
+ 				<![CDATA[
+ 					try {
+ 						yDebug.print("ybcustomscroll::mouseup", YB_LOG_MESSAGE);
+ 						if(this.scrollTimer) this.scrollTimer.cancel();
+ 					} catch(e) {
+ 						yDebug.print("ybcustomscroll::mouseup::Error:"+e, YB_LOG_MESSAGE);
+ 					}
+ 				]]>	 			
+	 		</handler>
+      </handlers>
+	  		
+	 <implementation implements="nsIObserver">
+	 
+	 <field name="_fixedRows">0</field>
+     <field name="_canScrollUp">false</field>
+     <field name="_canScrollDown">false</field>
+	 <field name="_dataArray" />
+	 <field name="_topVisibleIndex">0</field>
+	 <field name="_activeLabelList">null</field>
+	 <field name="_attachedSendBox">null</field>
+	 
+	 
+	 
+	 <constructor>
+        <![CDATA[
+          try {
+				this._fixedRows = this.getAttribute('rows');
+				this._activeLabelList = new Array();
+				this._attachedSendBox = document.getElementById(this.getAttribute('delsendboxid'));
+				//observers
+				this.observedSubjects = ["ybookmark.ybTagLines.tagAdded",
+										 "ybookmark.ybTagLines.clearAll",
+										 "ybookmark.ybTagLines.tagRemoved"];
+				var os = Components.classes["@mozilla.org/observer-service;1"]
+									 .getService(Components.interfaces.nsIObserverService);
+				for (var i = 0; i < this.observedSubjects.length; i++) {				           
+					os.addObserver( this, this.observedSubjects[i], false );
+				}
+				//for scrolling
+				this.scrollTimer = Components.classes["@mozilla.org/timer;1"]
+							  .createInstance(Components.interfaces.nsITimer);
+				//disable scroll buttons.
+				var scrollUp = document.getAnonymousElementByAttribute(this, "anonid", "suggestScrollUp");
+				var scrollDown = document.getAnonymousElementByAttribute(this, "anonid", "suggestScrollDown");
+				if(scrollUp) {
+					scrollUp.setAttribute("collapsed", true);
+					scrollDown.setAttribute("collapsed", true);						
+				}			  
+		  } catch (e) { yDebug.print("ybcustomscroll constructor: " +e);}
+		]]>
+      </constructor>
+	  
+	  <destructor>
+          <![CDATA[
+		var os = Components.classes["@mozilla.org/observer-service;1"]
+										 .getService(Components.interfaces.nsIObserverService);  
+        for (var i = 0; i < this.observedSubjects.length; i++) {
+           os.removeObserver(this, this.observedSubjects[i]);
+        }
+      ]]></destructor>
+	  
+	   <method name="observe">
+        <parameter name="aSubject"/>
+        <parameter name="aTopic"/>
+        <parameter name="aData"/>
+        <body><![CDATA[
+		  if (aTopic == "ybookmark.ybTagLines.tagAdded") {
+            this.addToSelectedList(aData);
+          } else if (aTopic == "ybookmark.ybTagLines.tagRemoved") {
+			if(this._activeLabelList.length) {
+				var index = this._activeLabelList.indexOf(aData);
+				if(index != -1) {
+					this._activeLabelList.splice(index,1);
+				}	
+			}
+		  } else if (aTopic == "ybookmark.ybTagLines.clearAll") {
+			this._activeLabelList = null;
+			this._activeLabelList = new Array();
+		  }
+		  this.doPaint();
+        ]]></body>
+      </method>
+
+
+
+	<method name="setData">
+		<parameter name="dataArray" />
+        <body><![CDATA[		
+			try {
+				if(!dataArray || !(dataArray.length)) {
+					return false;
+				}
+				//Store Data
+				this._dataArray = dataArray;
+				//Top visible index
+				this._topVisibleIndex = 0;
+				this.doPaint();
+			} catch(e) {
+				yDebug.print("ybcustomscroll::setData: " +e);
+			}
+		]]></body>
+	 </method>
+	 
+	 <method name="onItemClick">
+		<parameter name="elem" />
+        <body><![CDATA[							
+			var status = "";
+			try {
+				status = elem.getAttribute("status");
+				if(status == "") {
+					elem.setAttribute("status", "active");
+					this._attachedSendBox.addTag(elem.value);
+				} else {
+					elem.setAttribute("status", "");
+					this._attachedSendBox.removeTag(elem.value);
+				}
+				this.addToSelectedList( elem.value );
+			} catch(e){
+			}
+		]]></body>
+	 </method>
+	 	
+	
+	 <method name="addItem">
+		<parameter name="listItem" />
+		<parameter name="active" />
+        <body><![CDATA[							
+					var cont = document.getAnonymousElementByAttribute(this, "anonid", "my-cont");
+					var newElt = document.createElement( "label" );
+					newElt.setAttribute( "value", listItem );
+					newElt.setAttribute( "class", "my-test" );
+					newElt.setAttribute( "flex", "0" );
+					newElt.setAttribute( "noautofocus", "true" );
+					//newElt.setAttribute( "maxwidth", "110" );
+					newElt.setAttribute( "onclick", "try { this.parentNode.parentNode.parentNode.onItemClick( this ); } catch(e){}");
+					
+					if(this._activeLabelList && (this._activeLabelList.indexOf(listItem) != -1)) {
+						newElt.setAttribute( "status", "active" );
+					}
+					cont.appendChild( newElt );
+		]]></body>
+	 </method>
+	 
+	 <method name="addFlexy">
+		<parameter name="count" />
+        <body><![CDATA[
+        		var scrollUp = document.getAnonymousElementByAttribute(this, "anonid", "suggestScrollUp");
+				var scrollDown = document.getAnonymousElementByAttribute(this, "anonid", "suggestScrollDown");
+        		if(this._dataArray.length <= this._fixedRows) {
+					var cont = document.getAnonymousElementByAttribute(this, "anonid", "my-cont");
+					for(var i = 0; i < this._fixedRows - this._dataArray.length; ++i) {				    
+						var newElt = document.createElement( "label" );
+						newElt.setAttribute( "value", "   " );
+						cont.appendChild( newElt );
+					}
+					if(scrollUp) {
+						scrollUp.setAttribute("collapsed", true);
+						scrollDown.setAttribute("collapsed", true);						
+					}
+				} else {
+					if(scrollUp) {
+						scrollUp.setAttribute("collapsed", false);
+						scrollDown.setAttribute("collapsed", false);
+					}
+				}
+		]]></body>
+	 </method>
+	 
+	 <method name="checkScrollState">
+        <body><![CDATA[		
+					this._canScrollDown = this._canScrollUp = false;				
+					if(this._topVisibleIndex != 0) {
+						this._canScrollUp = true;
+					}
+					if( this._dataArray && ( 
+                        (parseInt(this._topVisibleIndex) + parseInt(this._fixedRows)) < this._dataArray.length ) ) {
+						this._canScrollDown = true;
+					}					
+		]]></body>
+	 </method>
+	 
+	 <method name="doPaint">
+        <body><![CDATA[		
+				  //Remove all childrem	
+				  var cont = document.getAnonymousElementByAttribute(this, "anonid", "my-cont");
+				  while(cont.hasChildNodes()){
+					cont.removeChild(cont.firstChild);
+				  }		
+				  if(this._dataArray) {			  
+					  var indexMax = parseInt(this._topVisibleIndex) + parseInt(this._fixedRows);
+					  if(indexMax >= this._dataArray.length) {
+						indexMax = this._dataArray.length;							
+					  }
+					  for(var i = this._topVisibleIndex; i < indexMax; ++i) {					
+						this.addItem(this._dataArray[i]);
+					  }
+					  //Add spacers if needed...
+					  this.addFlexy();
+				  }
+				  //scroll check
+				  this.checkScrollState();					
+		]]></body>
+	 </method>
+	 
+	 <method name="scrollUp">
+        <body><![CDATA[
+					if(this._canScrollUp) {
+						  //redraw 
+						  --this._topVisibleIndex;	
+						  this.doPaint();
+					}
+		]]></body>
+	 </method>
+			
+	 <method name="scrollDown">
+        <body><![CDATA[
+					if(this._canScrollDown) {
+						  //redraw 
+						  ++this._topVisibleIndex;
+						  this.doPaint();	
+					}
+		]]></body>
+	 </method>
+	 
+	 <method name="addToSelectedList">
+	 <parameter name="listItem" />
+        <body><![CDATA[
+					if(this._activeLabelList) {
+						this._activeLabelList.push(listItem);
+					}
+		]]></body>
+	 </method>
+
+	 
+	 
+	 <method name="cancelScroll">
+        <body><![CDATA[
+		]]></body>
+	 </method>
+	 
+	 
+	 </implementation>
+	  
+    <content>
+			<xul:hbox xbl:inherits="flex">
+				<xul:vbox class="" anonid="my-cont" xbl:inherits="width,maxwidth">
+					  <!-- List elements-->
+				</xul:vbox>        
+				<xul:vbox>
+					<xul:spacer flex="10"/>
+					<xul:image id="suggestCustScrollUp" anonid="suggestScrollUp" onclick="scrollUp();"/>
+					<xul:image id="suggestCustScrollDown" anonid="suggestScrollDown" onclick="scrollDown();"/>
+				</xul:vbox>	  
+			</xul:hbox>       
+
+    </content>
+    
+  </binding>
+
+</bindings>
+
+

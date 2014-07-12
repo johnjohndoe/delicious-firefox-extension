@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://ybookmarks/skin/overlay.css" type="text/css"?>
+
+<!DOCTYPE page SYSTEM "chrome://ybookmarks/locale/importOptions.dtd">
+
+<dialog
+   id="yb-import-progress" 
+   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+   title="&ybimport.progress.title;"
+   buttons="accept">
+
+<!--
+	<script type="application/x-javascript" src="chrome://ybookmarks/content/ybookmarksUtils.js" /> -->
+   <script type="application/x-javascript" src="chrome://browser/content/utilityOverlay.js"/>
+   <script type="application/x-javascript" src="chrome://ybookmarks/content/importProgress.js" />
+   <script type="application/x-javascript" src="chrome://ybookmarks/content/yDebug.js" />
+   <script type="application/x-javascript" src="chrome://ybookmarks/content/providerApis.js"/>
+
+<!--  <stringbundleset>
+    <stringbundle id="ybookmarks-strings" src="chrome://ybookmarks/locale/ybookmarks.properties"/>
+  </stringbundleset> -->
+	<vbox  id="yb-import-progress-success">
+		<description>&ybimport.progress.success;</description>
+		<separator/>
+		<description id="yb-import-progress-tour-desc">&ybimport.progress.tour;</description>
+	</vbox>
+	<vbox id="yb-import-progress-failure">
+		<description>&ybimport.progress.failure;</description>
+	</vbox>
+	<vbox id="yb-import-progress-importing">
+		<description>&ybimport.progress.importing;</description>
+	</vbox>
+		
+	<!--	<spacer height="10"/>
+		<progressmeter id="yb-import-progress-meter" mode="undetermined" /> -->
+</dialog>

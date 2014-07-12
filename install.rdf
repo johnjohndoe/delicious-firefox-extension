@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
+ xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+  <Description about="urn:mozilla:install-manifest">
+    <em:id>{2fa4ed95-0317-4c6a-a74c-5f3e3912c1f9}</em:id>
+    <em:name>Delicious Bookmarks</em:name>
+    <em:version>2.3.4</em:version>
+    <em:type>2</em:type>
+    <em:creator>AVOS Systems Inc.</em:creator>
+    <em:description>Delicious Bookmarks</em:description>
+    <em:targetApplication>
+      <Description>
+        <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id> <!-- firefox -->
+        <em:minVersion>3.0</em:minVersion>
+        <em:maxVersion>16.*</em:maxVersion>
+      </Description>
+    </em:targetApplication>
+    <em:unpack>true</em:unpack>
+  </Description>
+</RDF>

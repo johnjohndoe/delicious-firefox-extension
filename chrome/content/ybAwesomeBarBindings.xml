@@ -1,0 +1,172 @@
+<?xml version="1.0"?>
+<!DOCTYPE bindings PUBLIC "-//MOZILLA//DTD XBL V1.0//EN" "http://www.mozilla.org/xbl">
+<bindings id="ybookmarks-awesomebar-bindings"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:html="http://www.w3.org/1999/xhtml"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <binding id="ybookmarks-awesomebar-autocomplete-richlistitem" extends="chrome://global/content/bindings/autocomplete.xml#autocomplete-richlistitem">
+    <implementation>
+      <method name="_setUpDescription">
+        <parameter name="aDescriptionElement"/>
+        <parameter name="aText"/>
+        <body>
+          <![CDATA[
+          try {
+            // Get rid of all previous text
+            while (aDescriptionElement.hasChildNodes())
+              aDescriptionElement.removeChild(aDescriptionElement.firstChild);
+
+            // Get the indices that separate match and non-match text
+            let search = this.getAttribute("text");
+            
+            if(this.getAttribute("type") == "delicious" || this.getAttribute("type") == "deliciousonly") {
+              if(search.indexOf("??") == 0 || search.indexOf(">>") == 0) {
+                search = search.substr(2);
+              }
+            }
+            
+            let tokens = (search) ? this._getSearchTokens(ybookmarksUtils.trimStr(search)) : new Array(search);
+            let indices = this._getBoundaryIndices(aText, tokens);
+
+            // If we're searching for something that needs alternate emphasis,
+            // we'll need to check the text that we match
+            let checkAlt = this._needsAlternateEmphasis(search);
+
+            let next;
+            let start = 0;
+            let len = indices.length;
+            // Even indexed boundaries are matches, so skip the 0th if it's empty
+            for (let i = indices[0] == 0 ? 1 : 0; i < len; i++) {
+              next = indices[i];
+              let text = aText.substr(start, next - start);
+              start = next;
+
+              if (i % 2 == 0) {
+                // Emphasize the text for even indices
+                let span = aDescriptionElement.appendChild(
+                  document.createElementNS("http://www.w3.org/1999/xhtml", "span"));
+                span.className = checkAlt && this._needsAlternateEmphasis(text) ?
+                  "ac-emphasize-alt" : "ac-emphasize-text";
+                span.textContent = text;
+              } else {
+                // Otherwise, it's plain text
+                aDescriptionElement.appendChild(document.createTextNode(text));
+              }
+            }
+          } catch(e) {
+            yDebug.print("ybAwesomeBarBindings.xml::_setUpDescription::Error "+e, YB_LOG_MESSAGE);
+          }
+          
+          ]]>
+        </body>
+      </method>
+
+      <method name="_adjustAcItem">
+        <body>
+          <![CDATA[
+          try {
+            var url = this.getAttribute("url");
+            var title = this.getAttribute("title");
+            var type = this.getAttribute("type");
+            
+            // If we have a tag match, show the tags and icon
+            if (type == "tag") {
+              // Configure the extra box for tags display
+              this._extraBox.hidden = false;
+              
+              this._extraBox.childNodes[0].hidden = false;
+              
+              if(this._extraBox.childNodes[1].tagName == "xul:label") 
+                this._extraBox.childNodes[1].hidden = true;
+              
+              this._extraBox.flex = 1;
+              this._extraBox.pack = "end";
+
+              // The title is separated from the tags by an endash
+              let tags;
+              [, title, tags] = title.match(/^(.+) \u2013 (.+)$/);
+
+              // Each tag is split by a comma in an undefined order, so sort it
+              let sortedTags = tags.split(",").sort().join(", ");
+
+              // Emphasize the matching text in the tags
+              this._setUpDescription(this._extra, sortedTags);
+
+              // Treat tagged matches as bookmarks for the star
+              type = "bookmark";
+            } else if(type == "delicious" || type == "deliciousonly") {
+              // The title is separated from the tags by an endash
+              let tags;
+              if(title.match(/^(.+) \u2013 (.+)$/)) {
+                [, title, tags] = title.match(/^(.+) \u2013 (.+)$/);
+                // Each tag is split by a comma in an undefined order, so sort it
+                let sortedTags = tags.split(",").sort().join(", ");
+              
+                if(sortedTags.length > 0) {
+                  // Configure the extra box for tags display
+                  this._extraBox.hidden = false;
+                  
+                  this._extraBox.childNodes[0].hidden = false;
+                  if(this._extraBox.childNodes[1].tagName == "xul:label") 
+                    this._extraBox.childNodes[1].hidden = true;
+                  
+                  this._extraBox.flex = 1;
+                  this._extraBox.pack = "end";
+                  // Emphasize the matching text in the tags
+                  this._setUpDescription(this._extra, sortedTags);
+                }
+              }
+            } else if (type == "keyword") {
+              // Configure the extra box for keyword display
+              this._extraBox.hidden = false;
+              
+              if(this._extraBox.childNodes[1].tagName == "xul:label") {
+                this._extraBox.childNodes[0].hidden = true;
+                this._extraBox.childNodes[1].hidden = false;
+              }
+              
+              this._extraBox.flex = 0;
+              this._extraBox.pack = "start";
+              
+              // Put the parameters next to the title if we have any
+              let search = this.getAttribute("text");
+              let params = search.substr(search.indexOf(' ') + 1);
+
+              // Emphasize the keyword parameters
+              this._setUpDescription(this._extra, params);
+
+              // Don't emphasize keyword searches in the title or url
+              this.setAttribute("text", "");
+            } else {
+              // Hide the title's extra box if we don't need extra stuff
+              this._extraBox.hidden = true;
+            }
+
+            // Give the image the icon style and a special one for the type
+            this._typeImage.className = "ac-type-icon" +
+              (type ? " ac-result-type-" + type : "");
+
+            // Show the url as the title if we don't have a title
+            if (title == "")
+              title = url;
+
+            // Emphasize the matching search terms for the description
+            this._setUpDescription(this._title, title);
+            this._setUpDescription(this._url, url);
+
+            // Set up overflow on a timeout because the contents of the box
+            // might not have a width yet even though we just changed them
+            setTimeout(this._setUpOverflow, 0, this._titleBox, this._titleOverflowEllipsis);
+            setTimeout(this._setUpOverflow, 0, this._urlBox, this._urlOverflowEllipsis);
+            
+          } catch(e) {
+            yDebug.print("ybAwesomeBarBindings.xml::_adjustAcItem::Error "+e, YB_LOG_MESSAGE);
+          }
+          ]]>
+        </body>
+      </method>
+    </implementation>
+  </binding>
+</bindings>

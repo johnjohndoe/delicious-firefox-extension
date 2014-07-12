@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+
+<bindings xmlns="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+          xmlns:xbl="http://www.mozilla.org/xbl">
+
+  <binding id="menuitemHeader">
+
+    <resources>
+      <stylesheet src="chrome://ybookmarks/skin/menuitemHeader.css" />
+    </resources>
+  
+    <content>
+     <xul:hbox align="center" flex="1"> 
+       <xul:label anonid="mainLabel" flex="1" crop="right"
+            xbl:inherits="value=label,tooltiptext=tooltip,onclick=oncommand,crop"/>
+       <xul:vbox anonid="separator" class="separator" hidden="true"/>
+       <xul:label anonid="extraLabel" hidden="true"
+           xbl:inherits="value=extlabel,tooltiptext=exttooltip,onclick=extoncommand" />
+       <xul:box anonid="menuContainer" hidden="true">
+       <children includes="menu" />
+       </xul:box>
+     </xul:hbox>
+
+    </content>
+    <implementation>
+      <constructor>
+        <![CDATA[
+          var mainLabelElement =
+             document.getAnonymousElementByAttribute(this, "anonid", "mainLabel");
+
+          var separatorElement = 
+             document.getAnonymousElementByAttribute(this, "anonid", "separator");
+          
+          var extraLabelElement = 
+             document.getAnonymousElementByAttribute(this, "anonid", "extraLabel");
+          var menuContainer = 
+             document.getAnonymousElementByAttribute(this, "anonid", "menuContainer");
+          //show appropriate elements
+          var showextraAttribute = this.getAttribute("showextra");
+          if (showextraAttribute) {
+            var extraArray = showextraAttribute.split(",");
+            for (var i=0; i<extraArray.length; i++) {
+              
+              if (extraArray[i] == "separator") {
+                separatorElement.hidden = false;
+              }
+              else if (extraArray[i] == "link") {
+                extraLabelElement.hidden = false;
+              }
+              else if (extraArray[i] == "menu") {
+                menuContainer.hidden = false;
+              }
+            }
+          }
+          
+          //if the oncommand contains something, the main label would be displayed as link
+          //else it would be displayed as dislabed text        
+          var oncommandAttibute = this.getAttribute("oncommand");
+          if (!oncommandAttibute) {
+            mainLabelElement.disabled = "true"; 
+          }
+          else {
+            mainLabelElement.className = "label-link";
+          }
+
+          //if the extoncommand contains something, the extra label would be displayed as link
+          //else it would be displayed as normal text
+          oncommandAttibute = this.getAttribute("extoncommand");
+          if (oncommandAttibute) {
+            extraLabelElement.className = "label-link";
+          }
+          
+        ]]>  
+      </constructor>
+    </implementation>
+    
+  </binding>
+  
+</bindings>  

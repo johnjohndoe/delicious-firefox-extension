@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<overlay
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+         xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
+         xmlns:nc="http://home.netscape.com/NC-rdf#">
+<dialog id="addBookmarkDialog">
+	<script type="application/x-javascript" src="chrome://ybookmarks/content/yDebug.js"/>
+	<script type="application/x-javascript" src="chrome://ybookmarks/content/idManager.js"/>
+	<script type="application/x-javascript" src="chrome://ybookmarks/content/loginwindow.js"/>	
+	<script type="application/x-javascript" src="chrome://ybookmarks/content/yAddBookMark.js"/>
+	<script type="application/x-javascript" src="chrome://ybookmarks/content/ybAddBookmark2.js"/>
+
+    <stringbundleset id="stringbundleset">
+		<stringbundle id="ybookmarks-strings" src="chrome://ybookmarks/locale/ybookmarks.properties"/>
+    	<stringbundle id="strbndl_idManager" src="chrome://ybookmarks/locale/idManager.properties"/>
+    </stringbundleset>
+</dialog>
+</overlay>

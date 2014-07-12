@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="chrome://ybookmarks/skin/overlay.css" type="text/css"?>
+<!DOCTYPE overlay SYSTEM "chrome://ybookmarks/locale/ybookmarks.dtd">
+<overlay id="yb-sidebar-overlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <script src="chrome://ybookmarks/content/ybSidebarOverlay.js"/>
+  <script src="chrome://ybookmarks/content/ybsidebar.js"/>
+  <script src="chrome://ybookmarks/content/ybookmarksUtils.js"/>
+  <script src="chrome://ybookmarks/content/ybMenus.js"/>
+
+  <script type="application/x-javascript" src="chrome://global/content/nsDragAndDrop.js"/>
+  <script type="application/x-javascript" src="chrome://global/content/nsTransferable.js"/>
+  <script src="chrome://ybookmarks/content/providerApis.js" type="application/x-javascript" />
+
+
+  <commandset id="mainCommandSet">
+    <command id="cmd_yb_tooglePopup" oncommand="ybsidebar.togglePopup(event);"/>
+  </commandset>
+    
+  
+  <broadcasterset id="mainBroadcasterSet"> 
+       <broadcaster id="viewYBookmarksSidebar" 
+         label="&ybsidebar.title;"
+         autoCheck="false"
+         type="checkbox"
+         group="sidebar"
+             key="key_openYBookmarksSidebar"
+             accesskey="&ybookmarks.accesskey;"
+         sidebarurl="chrome://ybookmarks/content/ybsidebar.xul"
+         sidebarTitle="&ybsidebar.title;"
+         oncommand="toggleSidebar('viewYBookmarksSidebar');" />
+  </broadcasterset>
+
+  <toolbarpalette id="BrowserToolbarPalette">
+    
+    <toolbarbutton 
+        id="del-button-delicious-page" 
+        label="&yb.toolbarbutton.deliciousPage.label;"
+        tooltiptext="&yb.toolbarbutton.deliciousPage.label;"
+        onclick="openUILink(deliciousService.getUrl(deliciousService.getUserName()), event)"
+     />
+    
+    <toolbarbutton 
+       id="del-button-delicious" 
+       label="&yb.toolbarbutton.myBookmarks.label;"
+       tooltiptext="&yb.toolbarbutton.myBookmarks.label;"
+       oncommand="if (event.target == this) YBSidebar.openSideBar(false);"      
+    />
+        
+    <toolbarbutton
+       id="del-button-tagPage"
+       label="&yb.toolbarbutton.tagPage.label;"
+       tooltiptext="&yb.toolbarbutton.tagPage.label;"
+       oncommand="if (event.target == this) yAddBookMark.open();"
+       ondragover="nsDragAndDrop.dragOver(event, ybToolbar.dndObserver);"
+       ondragdrop="nsDragAndDrop.drop(event, ybToolbar.dndObserver);"
+       ondragexit="nsDragAndDrop.dragExit(event,ybToolbar.dndObserver);"
+    />   
+
+  </toolbarpalette>
+
+  <menupopup id="viewSidebarMenu">
+    <menuitem id="yb-viewSidebarMenuItem" observes="viewYBookmarksSidebar" hidden="true"/>
+  </menupopup>
+
+</overlay>

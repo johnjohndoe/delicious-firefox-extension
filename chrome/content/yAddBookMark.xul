@@ -1,0 +1,391 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://ybookmarks/skin/overlay.css" type="text/css"?>
+<?xml-stylesheet href="chrome://ybookmarks/skin/yAddBookMark.css" type="text/css"?>
+<?xml-stylesheet href="chrome://ybookmarks/skin/yAddBookMarkShare.css" type="text/css"?>
+
+
+<!DOCTYPE page SYSTEM "chrome://ybookmarks/locale/addybookmarks.dtd">
+
+<window
+	id="dlg_AddYBookMark" 
+	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+	xmlns:html="http://www.w3.org/1999/xhtml"
+	addTitle="&addybookmarks.dialog.addTitle;"
+	editTitle="&addybookmarks.dialog.editTitle;"
+	persist="screenX screenY"
+	onload="yAddBookMark.init()"
+	onunload="yAddBookMark.uninit()"
+	>
+	<script src="chrome://ybookmarks/content/providerApis.js" type="application/x-javascript" />
+	<script src="chrome://ybookmarks/content/loginwindow.js" type="application/x-javascript" />
+	<script src="chrome://ybookmarks/content/yAddBookMark.js" type="application/x-javascript" />
+	<script src="chrome://ybookmarks/content/yDebug.js" type="application/x-javascript" />
+	<script src="chrome://ybookmarks/content/ybookmarksUtils.js" type="application/x-javascript" />
+	<script src="chrome://browser/content/utilityOverlay.js" type="application/x-javascript" />
+	<script src="chrome://ybookmarks/content/idManager.js" type="application/x-javascript" />
+	<script src="chrome://ybookmarks/content/yAddBookMark3.js" type="application/x-javascript" />
+	<script src="chrome://ybookmarks/content/json.js" type="application/x-javascript" />
+	<script src="chrome://ybookmarks/content/twitterAuth.js" type="application/x-javascript" />
+
+	<stringbundleset id="stringbundleset">
+		<stringbundle id="strbndl_idManager" src="chrome://ybookmarks/locale/idManager.properties"/>
+		<stringbundle id="ybookmarks-strings" src="chrome://ybookmarks/locale/ybookmarks.properties"/>
+		<stringbundle id="bundle-bookmarks" src="chrome://browser/locale/bookmarks/bookmarks.properties"/>
+	</stringbundleset>
+
+	<keyset>
+		<key id="key_enter" keycode="VK_ENTER" oncommand="yAddBookMark.saveBookMark();"/>
+		<key id="key_return" keycode="VK_RETURN" oncommand="yAddBookMark.saveBookMark();"/>
+		<key id="key_escape" keycode="VK_ESCAPE" oncommand="yAddBookMark.cancelBookMark();"/>
+	</keyset>
+	
+	<vbox flex="1">
+		<hbox id="hbx_header" flex="0" align="center">
+			<hbox align="center">
+				<image id="img_dlgTitle" src="" flex="0" />
+			</hbox> 
+			<hbox flex="1"/>
+			<label value="&addybookmarks.header.loggedin;" flex="0" class="right-aligned-text2" />
+			<label id="lbl_userName" class="no-left-margin" flex="0" />
+		</hbox>
+
+		<separator height="4"/>
+
+		<grid id="grd_main">
+			<columns>
+				<column />
+				<column />
+				<column />
+			</columns>
+			<rows flex="1">
+				<row>
+					<hbox flex="1" />
+					<label id="lbl_origPostInfo" />
+					<hbox flex="1" />
+				</row>
+	
+				<row>
+					<hbox align="center"> 
+						<label class="right-aligned-text" value="&addybookmarks.url.label;" flex="1" accesskey="&addybookmarks.url.accesskey;" control="tb_yBookmarkURL"/>
+					</hbox>
+					<hbox>
+						<vbox flex="1">
+							<textbox id="tb_yBookmarkURL" flex="1" cols="85" oninput="yAddBookMark.onInput( this );" 
+								bk_tabindex="0" />
+							<label id="lbl_yBookmarkURL" flex="1" style="padding-top: 5px;" />
+						</vbox>
+						<hbox id="box_noShare" flex="0">
+							<checkbox id="cb_noShare" label="&addybookmarks.sharing.label;" accesskey="&addybookmarks.sharing.accesskey;"
+								bk_tabindex="-1" oncommand="ybAddBkShare.removeTwitterFromSend();" style="-moz-user-focus: ignore !important;"/>
+						</hbox>
+					</hbox>
+					<hbox>
+					</hbox>
+					<!--
+									<spacer flex="0" width="2px" />
+						-->
+				</row>
+				<row>
+					<hbox align="center">
+						<label class="right-aligned-text" control="tb_yBookmarkName" 
+							accesskey="&addybookmarks.name.accesskey;" value="&addybookmarks.name.label;" 
+							flex="1"/>
+					</hbox>
+					<hbox> 
+						<menulist id="menu_yBookmarkName" editable="true" droppable="false" 
+							oninput="yAddBookMark.onInput( this );" hidden="true" flex="1" bk_tabindex="1" >
+							<menupopup id="microsummaryMenuPopup" flex="1">
+								<menuitem id="userEnteredNameItem"/>
+								<menuitem disabled="true">
+									<menuseparator flex="1"/>
+									<label value="Microsummaries"/>
+								</menuitem>
+							</menupopup>
+						</menulist>
+						<textbox flex="1" id="tb_yBookmarkName" cols="85" oninput="yAddBookMark.onInput( this );" 
+							bk_tabindex="1" />
+					</hbox>
+					<checkbox id="cb_localOnly" label="&addybookmarks.localOnly.label;" style="-moz-user-focus: ignore;"
+						accesskey="&addybookmarks.localOnly.accesskey;" bk_tabindex="-1" 
+						hidden="true"
+						oncommand="yAddBookMark.onSelectLocalOnlyOption(event);"/>                
+				</row>
+				<row id="rw_keywordInput" hidden="true">
+					<hbox align="center">
+						<label class="right-aligned-text" control="tb_yBookmarkKeyword"
+							accesskey="&addybookmarks.keyword.accesskey;" value="&addybookmarks.keyword.label;" 
+							flex="1" />
+					</hbox>
+					<textbox id="tb_yBookmarkKeyword" bk_tabindex="2" />
+					<hbox align="center">
+						<hbox class="imageTip" tipContent="&addybookmarks.keyword.tipContent;" />
+					</hbox>
+				</row>
+				<row>
+					<label control="tb_yBookmarkNotes" accesskey="&addybookmarks.note.accesskey;" 
+						value="&addybookmarks.note.label;" class="right-aligned-text" style="padding-top:6px;" flex="1" />
+					<textbox id="tb_yBookmarkNotes" spellcheck="true" flex="1" rows="2" cols="85" multiline="true" bk_tabindex="3" />
+					<vbox>
+						<label id="lbl_notesCount" disabled="true" value=""/>
+						<label disabled="true" value="&addybookmarks.note.chars;"/>
+					</vbox>
+				</row>
+
+				<row>
+					<hbox align="center">
+						<label control="tb_ybTags" accesskey="&addybookmarks.tags.accesskey;" 
+							value="&addybookmarks.tags.label;" class="right-aligned-text" flex="1"/>
+					</hbox>
+					<tagautocomplete id="tb_ybTags" popupmaxheight="250" flex="1" cols="85" bk_tabindex="4" accesskey="&addybookmarks.tags.accesskey;" 
+						emptytext="&addybookmarks.tags.help;" onfocus="setTagsDeck();" oninput="ybAddBkShare.checkForRecipients(true);"
+						attachedSendBoxID="tb_yBookmarkSend"/> 
+					<hbox align="center">
+						<hbox class="imageTip" tipContent="&addybookmarks.tags.tipContent;" />
+					</hbox>
+				</row> 
+				<row>
+					<hbox align="center">
+						<label accesskey="&addybookmarks.send.accesskey;" value="&addybookmarks.send.label;" class="right-aligned-text" flex="1"/>
+					</hbox>      			
+					<textbox id="tb_yBookmarkSend" class="ybtaglines" emptytext="&addybookmarks.send.help;" width="700" autosuggestpopup="ybSendBoxPopup" onfocus="setSendDeck();"/>
+					<hbox align="center">
+						<!--
+							<hbox id="img_clearSend" onclick="document.getElementById('ybSendTextBox').clearAll();"/>
+							-->
+						<label value="&addybookmarks.send.clear;" id="img_clearSend" onclick="document.getElementById('tb_yBookmarkSend').clearAll();"/>
+					</hbox>	
+				</row>
+				<!-- Message for Send -->
+				<row>
+					<hbox align="center">
+					</hbox>
+					<hbox id="tweetMessage" collapsed="true">
+						<label value="&addybookmarks.tweet.message.label;" class="right-aligned-text" flex="0"/>
+						<textbox flex="1" id="tweetMessageText" rows="1" cols="85" multiline="true" emptytext="&addybookmarks.tweet.message.emptytext;"/>			
+					</hbox>
+					<vbox id="lbl_msgCountBox" collapsed="true">
+						<label id="lbl_msgCount" disabled="true" value="&addybookmarks.tweet.charlimit;"/>
+						<label disabled="true" value="&addybookmarks.tweet.chars;"/>
+					</vbox>
+				</row>
+				<row>
+					<hbox align="center">
+					</hbox>
+					<label id="lbl_tweetDesc" disabled="true" value="&addybookmarks.tweet.url.desc;" collapsed="true" flex="1" class="right-aligned-text2"/>
+				</row>	
+				<!-- NEW -->
+				<row hidden="true">
+					<hbox align="center">
+					</hbox>
+					<vbox id="SuggestionsPaneContainer">
+						<!-- Top tabs -->
+						<hbox>
+							<vbox>
+								<separator height="6"/>
+								<hbox class="deltightpack">
+									<stack>
+										<vbox flex="1">
+											<spacer flex="1"/>
+											<hbox>
+												<label flex="0" id="toptagtab" value="&addybookmarks.toptab.tags;" width="70" class="deltoptabs deltightpack" delindex="0" status="active" onclick="setTagsDeck();"/>
+												<spacer width="5"/>
+												<label flex="0" id="topsendtab" value="&addybookmarks.toptab.send;" width="70" class="deltoptabs deltightpack" delindex="1" status="" onclick="setSendDeck();"/>
+											</hbox>
+										</vbox>
+										<!--<image id="delnewicon" src="chrome://ybookmarks/skin/del_new.png" left="115" onclick="setSendDeck();"/>-->
+									</stack>
+								</hbox>
+							</vbox>
+							<spacer flex="10"/>
+						</hbox>
+						<vbox class="delwhite" height="140">
+							<vbox height="10"/>
+							<deck id="myTopDeck" flex="1">
+								<!-- Tag Deck -->
+								<hbox flex="1">
+									<vbox width="10"/>
+									<vbox flex="1">
+										<!--
+											<hbox flex="1" />
+												-->
+										<vbox id="hbx_recTags" hidden="true" flex="0">
+											<hbox flex="1">
+												<label value="&addybookmarks.recommended.label;" />
+												<label value="&addybookmarks.recommended.help;" class="no-left-margin" disabled="true" />
+											</hbox>
+										</vbox>
+										<vbox id="hbx_popTags" hidden="true" flex="0">
+											<separator/>
+											<hbox flex="1">
+												<label value="&addybookmarks.popular.label;" />
+												<label value="&addybookmarks.popular.help;" class="no-left-margin" disabled="true" />
+											</hbox>
+										</vbox>
+										<description id="hbx_noPopTags" hidden="true" class="moused-out-tag" flex="0">
+											&addybookmarks.popular.emptyMessage;
+										</description>
+										<spacer flex="2"/>
+									</vbox>
+								</hbox>	
+								<!-- Send Deck -->
+								<hbox flex="1">
+									<vbox width="10"/>
+									<!-- Send tabs -->
+									<vbox class="delsendtab1" flex="1" maxwidth="50">
+										<label value="&addybookmarks.share.sendtabs.header;" id="sendtabsHeader"/>
+										<spacer flex="2"/>
+										<hbox id="sendtodelicioustab" delindex="0" onclick="ybAddBkShare.onSendTabClick(this, 'delicious');" class="sendTab" status="active">
+											<label flex="1" class="sendTabsLabel" value="&addybookmarks.share.sendtabs.delicious;"/>
+										</hbox>
+										<hbox id="sendtotwittertab" delindex="1" onclick="ybAddBkShare.onSendTabClick(this, 'twitter');" class="sendTab" status="">
+											<label flex="1" class="sendTabsLabel" value="&addybookmarks.share.sendtabs.twitter;"/>
+										</hbox>
+										<hbox id="sendtoemailtab" delindex="2" onclick="ybAddBkShare.onSendTabClick(this, 'email');" class="sendTab" status="">
+											<label flex="1"  class="sendTabsLabel" value="&addybookmarks.share.sendtabs.email;"/>
+										</hbox>
+										<spacer flex="10"/>
+									</vbox>
+									<!-- for spacing between tabs and content -->
+									<vbox width="20"/>
+									<vbox flex="3">
+										<deck id="myDeck" flex="1">
+											<!-- Delicious Network -->
+											<vbox flex="1">
+												<spacer height="2"/>
+												<hbox>				  
+													<image id="img_delicious" src="chrome://ybookmarks/skin/deliciousSingleButton.png" flex="0" />
+													<label value="&addybookmarks.share.sendtabs.delicious;" class="deltwitterbold"/>	
+												</hbox>
+												<hbox height="4"/>
+												<label value="&addybookmarks.sendtabs.delicious.clickToAdd;" class="sendtabsHelp"/>		
+												<hbox height="10"/>
+												<!-- Show this when n/w is empty -->
+												<description collapsed="true" id="delemptynetwork" maxwidth="500">
+													<label value="&addybookmarks.sendtabs.delicious.networkIntro.question;" class="delsharebold"/>
+													<html:br/>
+													&addybookmarks.sendtabs.delicious.networkIntro; <html:br/>
+				      						&addybookmarks.sendtabs.delicious.networkIntro.text1;
+													<label class="clearleftright" value="&addybookmarks.sendtabs.delicious.networkIntro.text2;" onclick="ybAddBkShare.openNetwork();"/>
+				      						&addybookmarks.sendtabs.delicious.networkIntro.text3;
+													<html:br/>
+													<html:br/> 
+													<label class="clearleftright" value="&addybookmarks.sendtabs.delicious.networkIntro.learnMore;" align="right" onclick="ybAddBkShare.openNetworkFAQ();"/>
+												</description>
+					
+												<!-- Network users -->
+												<hbox flex="6" id="delnetworklists" collapsed="false">
+													<vbox flex="3" class="delrightborder"> 
+														<!-- scroll -->
+														<label flex="1" value="&addybookmarks.sendtabs.delicious.yournetwork;" class="boldonly"/>
+														<ybcustomscroll id="del_network_list" delsendboxid="tb_yBookmarkSend" flex="1" rows="5" width="120" maxwidth="120"/>
+													</vbox>
+					
+													<vbox flex="3">
+														<label flex="1" value="&addybookmarks.sendtabs.delicious.mostused;" class="boldonly"/>
+														<ybcustomscroll id="del_network_list_last" delsendboxid="tb_yBookmarkSend" flex="1" rows="5" width="120" maxwidth="120"/>
+													</vbox>
+												</hbox>
+												<spacer flex="1"/>
+											</vbox>
+
+											<!-- Twitter -->
+											<vbox flex="1">
+												<hbox>
+													<image  flex="0" src="chrome://ybookmarks/skin/twitter_logo.gif" maxwidth="85px" maxheight="20px"/>
+												</hbox>
+												<spacer width="20" height="5"/>
+												<vbox>
+													<label flex="1" class="deltwitterbold delnomargin" value="&addybookmarks.sendtabs.twitter.message;"/>
+												</vbox>
+												
+												<!-- twitter ON -->
+												<vbox id="twitterOAuth" flex="1" collapsed="true">			
+													<spacer flex="1"/>
+													<hbox flex="0" id="twitoauthreq" align="center" collapsed="false">
+							
+														<image flex="1" src="chrome://ybookmarks/skin/twitter_li.gif" maxwidth="8px" maxheight="8px"/>
+														<spacer width="5"/>
+														<label class="deltwettext" id="twitterAuthrequired" ybError="false" value="To tweet this bookmark you must"/>
+														<button label="Authorize delicious" oncommand="YBTwitterAuthWindow.openAuthWindow();"/>  
+														<spacer flex="6"/>
+													</hbox>
+													<vbox id="twitteroAuthAvailable" collapsed="true">
+														<hbox flex="0" align="center">
+							
+															<image flex="1" src="chrome://ybookmarks/skin/twitter_li.gif" maxwidth="8px" maxheight="8px"/>
+															<spacer width="5"/>
+															<label class="deltwettext" value="&addybookmarks.sendtabs.twitter.tweethelp1;"/>
+															<label id="deltwittertagNew" class="delhyper" value="&addybookmarks.sendtabs.twitter.attwitter;" onclick="ybAddBkShare.tweet();"/>
+															<label class="deltwettext" value="&addybookmarks.sendtabs.twitter.tweethelp2;"/>
+															<spacer flex="6"/>
+														</hbox>
+														<spacer width="20" height="5"/>
+														<hbox flex="0" align="center">
+															<image  flex="0" src="chrome://ybookmarks/skin/twitter_li.gif" maxwidth="8px" maxheight="8px"/>
+															<spacer width="5"/>
+															<checkbox id="tweetAllpublic" disabled="true" style="margin:0px !important; margin-left:0px !important;"/>
+															<label class="deltwettext" value="Tweet all bookmarks, unless private." flex="0"/>
+															<label id="edittweetsettings" value="Edit Settings" flex="0" onclick="YBTwitterAuthWindow.openAuthWindow();"/>
+															<spacer flex="1"/>
+														</hbox>
+													</vbox>
+													<spacer flex="6"/>
+												</vbox>					
+											</vbox>		<!-- Twitter End -->
+
+											<!-- Email -->
+											<vbox flex="1">
+												<hbox align="center">
+													<image id="img_email" src="chrome://ybookmarks/skin/icon_mail.gif" flex="0" />
+													<label value="&addybookmarks.share.sendtabs.email;" class="deltwitterbold"/>	
+												</hbox>					
+												<label value="&addybookmarks.share.sendtabs.email.help;" class="sendtabsHelp"/>
+												<spacer width="20" height="5"/>
+												<label value="&addybookmarks.share.sendtabs.email.previous;" class="boldonly delnomargin"/>
+												<hbox flex="1">
+													<ybcustomscroll id="emailsharelist" delsendboxid="tb_yBookmarkSend" flex="1" rows="5" width="200" maxwidth="200"/>
+													<spacer flex="1"/>
+												</hbox>
+												<spacer flex="1"/>
+											</vbox> 	<!-- Email -->
+
+										</deck>
+									</vbox>
+								</hbox>
+							</deck>
+							<separator orient="vertical" maxheight="2px"/>	
+						</vbox>
+
+					</vbox>
+				</row>
+				<!-- NEW END -->
+			</rows>
+		</grid>
+ 
+		<separator height="2"/>
+ 
+		<hbox id="hbx_buttons" flex="0">
+			<spacer flex="0" width="10px" />
+			<hbox flex="0">
+				<button id="btn_delete" label="&addybookmarks.delete.label;" 
+					accesskey="&addybookmarks.delete.accesskey;" flex="0" 
+					oncommand="yAddBookMark.deleteBookMark();" bk_tabindex="5" />
+			</hbox>
+			<spacer flex="1" />
+			<hbox flex="0">
+				<button id="btn_save" label="&addybookmarks.save.label;" 
+					accesskey="&addybookmarks.save.accesskey;" flex="0" 
+					oncommand="yAddBookMark.saveBookMark();" bk_tabindex="6" default="true"/>
+				<button id="btn_cancel" label="&addybookmarks.cancel.label;" 
+					accesskey="&addybookmarks.cancel.accesskey;" flex="0" 
+					oncommand="yAddBookMark.cancelBookMark();" bk_tabindex="7" />
+			</hbox>
+			<spacer flex="0" width="10px" />
+		</hbox>
+	</vbox>  
+	<popupset>
+		<popup id="ybSendBoxPopup" class="ybtaglinesautocomplete" inputfield="tb_yBookmarkSend" maxrows="5" noautofocus="true" ignorekeys="true" />
+	</popupset>
+</window>

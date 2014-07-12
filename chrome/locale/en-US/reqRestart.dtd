@@ -1,0 +1,4 @@
+<!ENTITY reqRestart.now.label "Restart Now">
+<!ENTITY reqRestart.later.label "Dont Restart">
+<!ENTITY reqRestart.now.accesskey "R">
+<!ENTITY reqRestart.later.accesskey "D">

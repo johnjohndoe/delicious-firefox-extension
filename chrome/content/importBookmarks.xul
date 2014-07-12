@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://ybookmarks/skin/overlay.css" type="text/css"?>
+
+<!DOCTYPE window SYSTEM "chrome://ybookmarks/locale/importOptions.dtd">
+
+<dialog
+  id="yb-import-bookmarks" 
+  xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+  title="&ybimport.title;"
+  buttons="accept,cancel"
+	ondialogaccept="ybImportBookmarks.onOk();">
+	<script type="application/x-javascript" src="chrome://ybookmarks/content/json.js" />
+	<script type="application/x-javascript" src="chrome://ybookmarks/content/ybookmarksUtils.js" />
+	<script type="application/x-javascript" src="chrome://ybookmarks/content/ybMenus.js" />
+	<script type="application/x-javascript" src="chrome://ybookmarks/content/yDebug.js" />
+	<script type="application/x-javascript" src="chrome://ybookmarks/content/importBookmarks.js" />
+
+	<stringbundleset>
+    <stringbundle id="yb-strings" src="chrome://ybookmarks/locale/ybookmarks.properties"/>
+  </stringbundleset>
+
+	<vbox>
+		<groupbox id="yb-import-bookmarks-filepicker-box">		
+		<label id="yb-import-description" value="&ybimport.source.desc;"/>
+		<separator orient="horizontal" class="thin"/>
+
+		<radiogroup id="yb-import-source" oncommand="ybImportBookmarks.toggleFileChoice();">
+			<hbox>
+				<radio id="yb-import-source-firefox" label="&ybimport.source.firefox;"  selected="true"/>
+			</hbox>
+			<hbox align="center">
+				<radio id="yb-import-source-file" label="&ybimport.source.file;" />
+				<textbox id="yb-import-source-file-path" flex="1" oninput="ybImportBookmarks.updateOkButton();" onfocus="this.select();"/>
+				<button id="yb-import-source-file-choose" label="&ybimport.source.file.choose;" oncommand="ybImportBookmarks.chooseFile();"/>
+			</hbox>
+			
+		</radiogroup>
+		<separator orient="horizontal" class="thin"/>
+		</groupbox>
+		
+		<box id="yb-import-bookmarks-bookmarks-box" hidden="true">		
+		<description id="yb-import-bookmarks-description"/>
+		<separator orient="horizontal" class="thin"/>
+		</box>
+		
+		<groupbox>
+		<importoptions id="yb-import-options"/>
+		</groupbox>
+	</vbox>
+</dialog>

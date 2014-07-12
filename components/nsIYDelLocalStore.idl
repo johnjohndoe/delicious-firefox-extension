@@ -1,0 +1,661 @@
+
+#include "nsISupports.idl"
+
+interface nsIYBookmark;
+interface nsIYBundle;
+interface nsIMutableArray;
+interface nsIPropertyBag;
+interface nsIArray;
+
+[scriptable, uuid(0d30068a-9721-4770-a4d3-15dd3ad61f0b)]
+interface nsIYDelLocalStore : nsISupports
+{ 
+	/**
+	 * This will perform all initialization of SQLite DB as well as prepare frequently used statements
+	 *
+	 * @param SQLite database filename.
+	 * NOTE: Avoid using .db and .sdb extensions since they have different meanings on Windows
+	 */
+	void init(in wstring fileName);
+	
+	void createDB();
+
+	void createTables();
+
+	void createViews();
+
+	void createIndices();
+
+   /**
+	* Add bookmark to the sqlite database.
+	* If bookmark already exists, do nothing.
+	*
+	* @param aUrl url of the bookmark. url cannot be changed once added
+	* @param aName name of the bookmark
+	* @param aDescription short description for this bookmark
+	* @param arraySize number of items in the next array parameter
+	* @param aTags tags for this bookmark. Array of string
+	* @param shared whether or not this bookmark is shared with public
+	* @param localOnly whether or not this bookmark should be stored in local only
+	*       
+	*/
+	void addBookmark(in wstring aUrl, 
+				   in wstring aName,
+				   in wstring aDescription,
+				   in wstring shortcutUrl,
+				   in wstring postData,                   
+				   in PRUint32 arraySize,
+				   [ array, size_is(arraySize) ] in wstring aTags,
+				   in wstring shared,
+				   in wstring localOnly);
+   /**
+	* Add bookmark to rdf datasource. This method is same as the previous addBookmark method except
+	* for the input parameter.
+	*
+	* @param bookmark bookmark object returned by getBookmark or newly created nsIYBookmark object
+	* 
+	*/
+	void addBookmarkObject(in nsIYBookmark bookmark);
+
+  /**
+   * Add the tags to the given url. Does nothing if no url present in the bookmarks sqlite database.
+   * Duplicate tags are ignored.
+   *
+   * @param tagCount number of items in the next parameter, array of tags.
+   * @param aTags array of tags. 
+   * @param aUrl url to which aTags are applied.
+   *
+   * @return false if tags are applied successfully.
+   *
+   * NOTE: This method may throw an exception.
+   *
+   */
+  boolean addTag(in PRUint32 tagCount, 
+                 [array, size_is(tagCount)] in wstring aTags, 
+                 in wstring aUrl);
+
+  /**
+   * Add new livemarks to bookmarks database
+   * @param aUrl the url of where the livemark comes from
+   * @parma aName the name of the livemark
+   * @param aDescription the description of the livemark
+   * @param arraySize size of tags array
+   * @param aTags array of tags
+   * @param shared whether or not this bookmark is shared with public
+   * @param localOnly whether or not this bookmark should be stored in local only   
+   */
+  void addLivemark(in wstring aUrl, 
+                   in wstring aName, 
+                   in wstring aDescription, 
+                   in PRUint32 arraySize,
+                   [ array, size_is(arraySize) ] in wstring aTags,
+                   in wstring shared,
+                   in wstring localOnly);
+                   
+
+  /**
+   * Delete all bookmarks 
+   *
+   */
+  void deleteAllBookmarks();
+
+  /**
+   * Edit the given bookmark. New values are provided as a nsIYBookmark object.
+   * URL should not be allowed to be edited. Implementation is free to decide on 
+   * the editable attributes.
+   *
+   * @param aUrl url to be edited.
+   * @param args object of nsIYBookmark. This is key value pair represented as a JSON object.
+   * 
+   * @return false if aUrl is not present in the database, true otherwise.
+   *
+   * NOTE: Method may throw an exception.
+   *
+   */
+  boolean editBookmark(in wstring aUrl, in nsIYBookmark args);
+
+  /**
+   * Delete the bookmark and all its associated tags from the database. If same tag is used by 
+   * multiple bookmarks, only the association between bookmark and the tag is removed. Tag is 
+   * retained in the system.
+   *
+   * @param aUrl url to be removed from the system.
+   *
+   * @return false if aUrl is not present in the system, true otherwise.
+   *
+   */
+  boolean deleteBookmark( in wstring aUrl );
+
+  /**
+   * Get the bookmarks for a given tag. If aTag is null, return all the bookmarks.
+   * 
+   * @param aTag1 tag for which bookmark is requested.
+   * @param aTag2 related tag for which bookmark is requested.
+   * @param aSortOrder sorting order for bookmarks {"alpha", "last_added", "site", "most_visited", "last_visited"}
+   * @param aCount parameter which will be set to the number of items in the returned array.
+   *
+   * @return an array of nsIYBookmark object. Each object is a key value pair. An empty array if
+   *         no urls tagged with the given tag or aTag is not present in the database.
+   *
+   */
+  void getBookmarks(in wstring aTag1, in wstring aTag2, in wstring aSortOrder, in PRUint32 aLimit, out PRUint32 aCount, [array, size_is(aCount), retval] out nsIYBookmark aArray); 
+
+  /**
+   * Get the bookmarks for an array of tags. This is a union of all bookmarks with any of the tags 
+   * in aTags.
+   * 
+   * @param arraySize size of tag array.
+   * @param aTags tag array.
+   * @param aSortOrder sorting order for bookmarks
+   * @param aCount parameter which will be set to the number of items in the returned array.
+   *
+   * @return an array of nsIYBookmark object. Each object is a key value pair. An empty array if
+   *         no urls tagged with the given tag or aTag is not present in the database.
+   *
+   */
+  void getBookmarksUnionforTags(in PRUint32 arraySize,
+                                [ array, size_is(arraySize) ] in wstring aTags,
+                                in wstring aSortOrder,
+                                out PRUint32 aCount,
+                                [array, size_is(aCount), retval] out nsIYBookmark aArray);
+  
+  /**
+   * Get the bookmarks for an array of tags. This is a intersection of bookmarks with all of the tags 
+   * in aTags.
+   * 
+   * @param arraySize size of tag array.
+   * @param aTags tag array.
+   * @param aSortOrder sorting order for bookmarks
+   * @param aCount parameter which will be set to the number of items in the returned array.
+   *
+   * @return an array of nsIYBookmark object. Each object is a key value pair. An empty array if
+   *         no urls tagged with the given tag or aTag is not present in the database.
+   *
+   */
+  void getBookmarksIntersectionForTags(in PRUint32 arraySize,
+                                [ array, size_is(arraySize) ] in wstring aTags,
+                                in wstring aSortOrder,
+                                out PRUint32 aCount,
+                                [array, size_is(aCount), retval] out nsIYBookmark aArray);
+
+  /**
+   * Get the recently added bookmarks
+   * 
+   * @param maxCount max number of bookmarks needed
+   * @param aCount parameter which will be set to the number of items in the returned array.
+   *
+   * @return an array of nsIYBookmark object. Each object is a key value pair. An empty array if
+   *         no urls tagged with the given tag or aTag is not present in the database.
+   *
+   */
+  void getRecentBookmarks(in PRUint32 maxCount, out PRUint32 aCount, [array, size_is(aCount), retval] out nsIYBookmark aArray); 
+
+  /**
+   * Get the most visited bookmarks
+   * 
+   * @param maxCount max number of bookmarks needed
+   * @param aCount parameter which will be set to the number of items in the returned array.
+   *
+   * @return an array of nsIYBookmark object. Each object is a key value pair. An empty array if
+   *         no urls tagged with the given tag or aTag is not present in the database.
+   *
+   */
+  void getMostVisitedBookmarks(in PRUint32 maxCount, out PRUint32 aCount, [array, size_is(aCount), retval] out nsIYBookmark aArray); 
+
+  
+  /**
+   * Get the tags for a given url. If url parameter is null, return all the tags in the system.
+   *
+   * @param aUrl url for which tags are requested.
+   * @param aCount parameter which will be set to the number of items in the returned array.
+   *
+   * @return an array of string having the tags for the given aUrl. An empty array if aUrl is
+   *         not present in the system or aUrl do not have any tags.
+   *
+   */
+  void getTags(in wstring aUrl, out PRUint32 aCount, [array, size_is(aCount), retval] out wstring aArray); 
+
+  /**
+   * Get all the tags from store, get related tags if tag is passed
+   * 
+   * @param aTag tag for which related tags required
+   * @param aSortOrder sorting order for bookmarks {"alpha", "last_added", "site", "most_visited", "last_visited"}
+   *
+   * @return an array of tags and frequency
+   *
+   */
+  nsIMutableArray getAllTags(in wstring aTag, in wstring aSortOrder);
+
+  /**
+   * Whenever website is visited via the bookmark link the count on the bookmark is increased.
+   * This also updates the last visited time.
+   * 
+   * @param aUrl url visited
+   */
+  void incrementVisitCount(in wstring aUrl);
+
+  /**
+   * Check if the given url is present in the bookmark database. 
+   * 
+   * @param aUrl url of the bookmark to be checked.
+   * 
+   * @return boolean true if bookmark present, false otherwise.
+   *
+   */
+  boolean isBookmarked(in wstring aUrl); 
+
+  /* Check if the given feed url is present in the bookmark database. 
+   * 
+   * @param aFeedUrl url of the livemark to be checked.
+   * 
+   * @return true if livmark present, false otherwise.
+   */
+  boolean isLivemarked(in wstring aFeedUrl);
+
+  /* Reload the livemark
+   * 
+   * @param aFeedUrl url of the livemark to be reloaded.
+   * 
+   */
+  void reloadLivemark(in wstring aFeedUrl);
+ 
+
+  /**
+   * The last update time is the timestamp provided by the service provider (example del.icio.us). 
+   * This value is used to sync the local cache of the bookmarks with the server side bookmarks.
+   * Instead of pulling all the bookmarks everytime, client can request for only the new/changed
+   * bookmarks.
+   *
+   * @param timeString time stamp provided by the service provider.
+   * 
+   */
+  void setLastUpdateTime(in wstring timeString);
+
+  /**
+   * Fetch the time stamp stored using setLastUpdateTime method.
+   * 
+   * @return the timestamp stored using setLastUpdateTime method.
+   *
+   */
+  wstring getLastUpdateTime();
+
+  /**
+   * Return the bookmark properties given the url
+   *
+   * @param aUrl url for which properties are requested.
+   *
+   * @return nsIYBookmark object
+   *
+   */
+  nsIYBookmark getBookmark(in wstring aUrl);
+
+  /**
+   * Return the bookmark properties given the shortcut url
+   *
+   * @param aUrl shortcut url for which properties are requested.
+   *
+   * @return nsIYBookmark object
+   *
+   */
+  nsIYBookmark getBookmarkFromShortcutURL(in wstring aUrl);
+
+  /**
+   * Return the url visit count and last visited from seperate table
+   *
+   * @param aUrl shortcut url for which properties are requested.
+   *
+   * @return wstring containing visit_count and last_visited seperated by space
+   *
+   */
+  wstring getURLVisits(in wstring aUrl);
+  
+  /**
+   * Deletes all the rows from url_visits table
+   */
+  void clearURLVisits();
+
+  /**
+   * Search tags
+   *
+   * @param aKeyword keyword to be searched
+   * @return array of tag:frequency pair  
+   */
+  nsIMutableArray searchTags(in wstring aKeyword, in wstring aSortOrder);
+
+  /**
+   * Search bookmarks
+   *
+   * @param aKeyword keyword to be searched
+   * @return number of results
+   */
+  void searchBookmarks(in wstring aKeyword, in wstring aSortOrder, in PRUint32 aLimit, out PRUint32 aCount, [array, size_is(aCount), retval] out nsIYBookmark aArray);
+
+  /**
+   *  Add a transaction (e.g. add, edit and delete bookmark) to the datasource
+   *  
+   *  @param aAction the type of the transaction
+   *  @param aState the state of the transaction   i.e. 0 - uninitialized, 1= sent, 2 = completed
+   *  @param aType of the data e.g. bookmark, bundle, favourite_tag
+   *  @param aData id locating the bookmark, bundle or tag
+   *
+   */
+  void addTransaction (in string aAction, in PRUint32 aState, in string aType, in wstring aData);
+    
+  /**
+   *  Remove a transaction from the datasource
+   *  
+   *  @param aAction the type of the transaction
+   *  @param aType  the type of data e.g. bookmark, bundle, favourite_tag
+   *  @param aData  id locating the bookmark, bundle or tag
+   *
+   */
+  void removeTransaction (in string aAction, in string aType, in wstring aData);
+
+  /**
+   *  Remove all transactions in particular state.
+   *  
+   *  @param aState the state of the transactions. i.e. 0 - uninitialized, 1 - sent, 2 - completed, 3 - failed, 10 - all
+   */ 
+  void removeAllTransactions (in PRUint32 aState);
+  
+  /**
+   *  Set the state of a transaction
+   *   
+   *  @param aAction the type of the transaction
+   *  @param aType of the data e.g. bookmark, bundle, favourite_tag
+   *  @param aData id locating the bookmark, bundle or tag
+   *  @param aState the state of the transaction   i.e. 0 - uninitialized, 1= sent, 2 = completed, 3 - failed
+   *
+   */ 
+  void setTransactionState (in string aAction, in string aType, in wstring aData, in PRUint32 aState);
+  
+  /**
+   *  Get all transactions from the datasource
+   *  
+   *  @return the MutableArray contains all transactions 
+   *  and each of them is in hashPropertyBag format 
+   *
+   */ 
+  nsIMutableArray getTransactions ();
+
+  /**
+   *  Reset the 'sent' and 'failed' transactions to 'uninitialized'
+   *  after a period of time
+   *
+   */
+  void restateTransactions ();
+  
+  /**
+   *  Get all bookmarks' metahash and urlhash from the datasource
+   *  
+   *  @return the MutableArray contains all transactions 
+   *  and each of them is in hashPropertyBag format 
+   *
+   */   
+  nsIMutableArray getBookmarkHashes ();  
+  
+  
+  /**
+   * Delete the bookmark and all its associated tags from the database. If same tag is used by 
+   * multiple bookmarks, only the association between bookmark and the tag is removed. Tag is 
+   * retained in the system.
+   *
+   * @param aHash boookmark which contain this url hash would be removed from the system.
+   *
+   * @return false if url hash is not present in the system, true otherwise.
+   *
+   */
+  boolean deleteBookmarkForHash ( in wstring aHash );
+
+  /**
+   *  Get the number of transactions in the datasource
+   *  
+   *  @param aAction the type of the transaction. i.e. addBookmark, editBookmark, deleteBookmark, all/""
+   *  @param aType of the data e.g. bookmark, bundle, favourite_tag
+   *  @param aState the state of the transactions. i.e. 0 - uninitialized, 1 - sent, 2 - completed, 3 - failed
+   *
+   *  @return number the number of transactions
+   *
+   */ 
+  PRUint32 getNumberOfTransactions (in string aAction, in string aType, in PRUint32 aState);
+
+  /*
+   * Get the tags suggestion based on the keyword input
+   *
+   * e.g. for tags (video, videogame) if 'video' is passed: returns (video, videogame) if keepExactMatch is true, returns (videogame) if false
+   * @param aKeyword keyword input
+   * 
+   */  
+  nsIMutableArray getTagSuggestions (in wstring aKeyword, in boolean keepExactMatch);
+  
+  /**
+   * Return the total number of bookmarks in the store
+   *
+   * @return total number of bookmarks
+   */
+  PRUint32 getTotalBookmarks();
+
+  /**
+   * Returns total number of tags in the system
+   * 
+   * @return total number of tags
+   */
+  PRUint32 getTotalTags();
+
+  /**
+   * Returns total number of bookmarks for a tag
+   * 
+   * @return total number of bookmarks
+   */
+  PRUint32 getTotalBookmarksForTag(in wstring aTag);
+          
+   /**
+    * Get an array of all the Favorite Tags
+    *
+    * @return an array of strings with the Favorite Tag names in order
+    */
+    void getFavoriteTags ( out PRUint32 aCount, [array, size_is(aCount), retval] out wstring aArray);
+    
+   /**
+    * Add a Favorite Tag to the datastore
+    */
+    void addFavoriteTag (in wstring aTag);
+    
+   /**
+    * Removes a Favorite Tag from the datastore
+    */
+    void deleteFavoriteTag (in wstring aTag);
+    
+   /**
+    * Moves a pre-existing Favorite Tag to a particular index.  Datastore indexes are 0 based.
+    */
+    void moveFavoriteTag (in wstring aTag, in PRUint32 aIndex);
+    
+   /**
+    * Removes all the Favorite Tags
+    */
+    void clearFavoriteTags();
+    
+   /**
+    * Return the bookmarks for a favorite tag in order.
+    *
+    * @return array of nsIYbookmark
+    */
+    void getBookmarksFromFavoriteTag (in wstring aTag, out PRUint32 aCount, [array, size_is(aCount), retval] out nsIYBookmark aArray);
+    
+   /**
+    * Get the display order preference for a Favorite Tag (i.e chrono, user-specified, alpha-numerical, etc)
+    *
+    * @return string
+    */
+    PRUint32 getFavoriteTagOrder(in wstring aTag);
+    
+   /**
+    * Set the display order for the bookmarks of a favorite tag.  This doesn't actually change the order in the datasource 
+    * (the order in the datasrouce is always stored in "user-specified" order), it merely 
+    * sets a field to the order.
+    */
+    void setFavoriteTagOrder(in wstring aTag, in PRUint32 aOrder);
+
+   /**
+    * Returns whether aTag is a Favrite Tag
+    *
+    * @return true or false
+    */
+    boolean isFavoriteTag(in wstring aTag);
+
+	/** 
+     * Save favorite tags
+     * 
+     */
+    void saveFavoriteTags ();
+
+   /**
+	* Retrieves all the bookmarks for a Livemark
+	*
+	* @return an array of nsIYBookmark
+	*/
+    void getBookmarksForLivemark (in wstring aUrl, out PRUint32 aCount, [array, size_is(aCount), retval] out nsIYBookmark aArray);
+    
+   /**
+	* Retrieves the bookmark for a hash
+	*
+	* @return an object of nsIYBookmark
+	*/
+    nsIYBookmark getBookmarkForHash (in wstring aHash);
+ 
+   /**
+	* Return an array of Bundles
+	*/
+    void getBundles(out PRUint32 aCount, [array, size_is(aCount), retval] out nsIYBundle aArray);
+
+   /**
+	* Return the Bundle for a given bundle name
+	*/
+    nsIYBundle getBundle(in wstring aBundle);
+
+   /**
+	* Adds the the argument bundles to the current set of bundles.  Note that any pre-existing bundles will remain.
+	*/
+    void setBundles(in nsIArray aBundles);
+    
+   /**
+	* Clears out the Bundles
+	*/
+    void clearBundles();
+    
+    void setBundle(in nsIYBundle aBundle);
+    
+    void deleteBundle(in nsIYBundle aBundle);
+    
+   /**
+    * Sets the last upate time for a delicious feed url 
+    */
+    void setFeedLastUpdateTime(in wstring feedURL, in wstring lastUpdateTime);
+    
+   /**
+    * Gets the last upate time for a delicious feed url 
+    */
+    string getFeedLastUpdateTime(in wstring feedURL);
+
+  /**
+   * Updates existing bookmark numeric properties
+   */
+  void setNumericPropertyForBookmark(in wstring url, in string propName, in PRUint32 propValue);
+
+   /**
+   * Updates existing bookmark string properties
+   */
+  void setStringPropertyForBookmark(in wstring url, in string propName, in string propValue);
+
+  /**
+   * update recipient info
+   * @param {} provider
+   * @param {} recipient
+   */
+  void updateRecipientInfo (in wstring provider, in wstring recipient, in PRUint32 frequency);
+
+  /**
+   * update provider info
+   * @param {} aProvider
+   * @param {} aUsername
+   * @param {} aAuthStatus
+   * @param {} aAutoSendPublic
+   */
+  void updateProviderInfo (in wstring aProvider, in wstring aUsername, in wstring aAuthStatus, in wstring aAutoSendPublic);
+  
+  /**
+   * delete recipient
+   */
+  void deleteRecipient (in wstring provider, in wstring recipient);
+
+  /**
+   * delete all providers
+   */
+  void deleteAllProviders ();
+  
+  /**
+   * Search Recipients
+   * @param {} searchString
+   * @param {} aCount
+   * @return {}
+   */
+  void searchRecipients (in wstring searchString, out PRUint32 aCount, [array, size_is(aCount), retval] out wstring aRecipients);
+
+	/**
+	 * get provider username
+	 * @param {} provider
+	 * @param {} providerId
+	 * @return {String}
+	 */
+  	wstring getProviderUsername ( in wstring provider );
+
+	/**
+	 * get provider status
+	 * @param {} provider
+	 * @param {} providerId
+	 * @return {String}
+	 */
+  	wstring getProviderAuthStatus ( in wstring provider );
+
+  	/**
+  	 * get provider auto send public status
+  	 * @param {} provider
+  	 * @return {String}
+  	 */
+  	wstring getProviderAutoSendPublicStatus ( in wstring provider );
+  	  	
+	/**
+	 * get recipients
+	 * @param {} provider
+	 * @param {} order
+	 * @param {} aCount
+	 */
+  	void getRecipients (in wstring provider, in wstring order, out PRUint32 aCount, [array, size_is(aCount), retval] out wstring aRecipients);
+
+  	void clearRecipients(in wstring provider);
+		
+  	/**
+  	 * get send list for bookmark
+  	 * @param {} aUrl
+  	 * @return {}
+  	 * This is used only for migration from old transaction format.
+  	 */
+  	wstring getSendListForBookmark (in wstring aUrl);
+  	  	
+  	/**
+  	 * get send message for bookmark
+  	 * @param {} aUrl
+  	 * @return {}
+  	 */
+  	wstring getSendMessageForBookmark (in wstring aUrl);
+  	
+  	void startUpdatingFavicons();
+  	
+  	void stopUpdatingFavicons();
+  	
+	void clearLocalStore(in wstring onAction);
+	
+	void deleteAllPrivateBookmarks();
+};  
+

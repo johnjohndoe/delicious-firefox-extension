@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://ybookmarks/skin/overlay.css" type="text/css"?>
+
+<!DOCTYPE page SYSTEM "chrome://ybookmarks/locale/ybookmarks.dtd">
+
+<dialog id="test1" 
+   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+   title="&ybookmarks.label;"   
+   buttons="cancel,extra1"
+   defaultButton="extra1"
+   buttonlabelextra1="&extensions.ybookmarks.engine.switch.restart.text;"
+   ondialogextra1="window.arguments[0].out='restart';window.close();">
+
+<hbox>
+<spacer flex="1" width="5"/>
+<hbox flex="1">
+<image src="chrome://ybookmarks/skin/deliciousIconBig.gif" width="40" height="40"></image>
+<spacer flex="1" width="15"/>
+<vbox flex="1">
+<description flex="1" class="header">&extensions.ybookmarks.engine.switch.to.standard.mode.text;</description>
+<description>&extensions.ybookmarks.engine.switch.restart.required;</description>
+</vbox>
+<spacer flex="1" width="15"/>
+</hbox>
+</hbox>
+
+</dialog>

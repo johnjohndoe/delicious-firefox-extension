@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css" ?>
+<?xml-stylesheet href="chrome://browser/skin/browser.css" type="text/css" ?>
+<!DOCTYPE page SYSTEM "chrome://emptysidebar/locale/emptysidebar.dtd">
+
+<page id="sbEmptySidebar" title="&emptysidebar.title;"
+	 xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" >
+  <script type="application/javascript" src="chrome://emptysidebar/content/browser.js"/>
+<tree flex="1" id="Bookmarks" onselect="selecting(currentIndex);" >
+	<treecols >
+		<treecol label="Bookmarks" primary="true" width="320" />
+	</treecols>
+	<treechildren>
+		<treeitem container="true" open="true" >
+			<treerow>
+				<treecell label="Public" />
+			</treerow>
+			<treechildren>
+				<treeitem>
+					<treerow>
+						<treecell label="New York Times" />
+					</treerow>
+				</treeitem>
+				<treeitem>
+					<treerow>
+						<treecell label="Yahoo!" />
+					</treerow>
+				</treeitem>
+			</treechildren>
+		</treeitem>
+		<treeitem container="true" open="true">
+			<treerow>
+				<treecell label="Private" />
+			</treerow>
+			<treechildren>
+				<treeitem>
+					<treerow>
+						<treecell label="Delicious" />
+					</treerow>
+				</treeitem>
+			</treechildren>
+		</treeitem>
+	</treechildren>
+</tree>
+
+<script>
+
+function selecting(idx)
+{
+	alert("Selected " + idx);
+}
+
+</script>
+</page>

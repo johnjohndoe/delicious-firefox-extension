@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css" ?>
+<?xml-stylesheet href="chrome://browser/skin/browser.css" type="text/css" ?>
+<!DOCTYPE page SYSTEM "chrome://emptysidebar/locale/emptysidebar.dtd">
+
+<page id="sbEmptySidebar" title="&emptysidebar.title;"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" >
+  <script type="application/javascript" src="chrome://emptysidebar/content/browser.js"/>
+  <vbox flex="1">
+    <label id="atest" value="New York Times" onclick="DeliciousSB.loadPage('http://www.nytimes.com');return true;"/>
+    <label id="btest" value="Yahoo News" onclick="DeliciousSB.loadPage('http://news.yahoo.com');return true;"/>
+    <label id="ctest" value="Delicious" onclick="DeliciousSB.loadPage('http://www.delicious.com');return true;"/>
+  </vbox>
+</page>

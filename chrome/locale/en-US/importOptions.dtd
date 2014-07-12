@@ -1,0 +1,26 @@
+<!ENTITY ybimport.title "Import Bookmarks">
+<!ENTITY ybimport.desc "All imported bookmarks will be marked as private.">
+<!ENTITY ybimport.poptags.add "Automatically add the most popular tags for each bookmark">
+<!ENTITY ybimport.tags.add "Add these tags to these bookmarks when imported">
+<!ENTITY ybimport.tags.add.note "Space separated e.g. imported old">
+<!ENTITY ybimport.duplicates "What should we do with duplicate bookmarks?">
+<!ENTITY ybimport.duplicates.replace "Replace existing Delicious bookmarks with these Firefox bookmarks">
+<!ENTITY ybimport.duplicates.no.replace "Only import bookmarks that you don't already have in Delicious">
+<!ENTITY ybimport.poptags.add "Would you like to add popular tags to your imported bookmarks?">
+<!ENTITY ybimport.poptags.add.yes "Yes, add popular tags">
+<!ENTITY ybimport.poptags.add.no "No, do not add popular tags">
+
+
+<!ENTITY ybimport.source.desc "Import these bookmarks to Delicious:">
+<!ENTITY ybimport.source.firefox "From my Firefox bookmarks file">
+<!ENTITY ybimport.source.file "From a file:">
+<!ENTITY ybimport.source.file.choose "Choose...">
+
+<!ENTITY ybimport.progress.title "Bookmark Import Status">
+<!ENTITY ybimport.progress.success "We have finished importing your bookmarks to your Delicious account.">
+<!ENTITY ybimport.progress.failure "Oops! There was a problem importing your bookmarks to your Delicious account.">
+<!ENTITY ybimport.progress.importing "We are already importing your bookmarks to your Delicious account.">
+<!ENTITY ybimport.progress.tour "Take the <label id='yb-import-progress-tour-link' value='tour' class='text-link'/> to learn about the new key features.">
+
+
+

@@ -1,0 +1,2420 @@
+<?xml version="1.0"?>
+<!DOCTYPE overlay SYSTEM "chrome://ybookmarks/locale/ybookmarks.dtd">
+<bindings
+   xmlns="http://www.mozilla.org/xbl"
+   xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+     xmlns:rdf="http://home.netscape.com/NC-rdf#"
+     xmlns:html="http://www.w3.org/1999/xhtml"
+     xmlns:xbl="http://www.mozilla.org/xbl">
+    
+  <binding id="ybsidebar">
+      <resources>
+        <stylesheet src="chrome://ybookmarks/skin/overlay.css" />
+        <script src="chrome://ybookmarks/content/providerApis.js" type="application/x-javascript" />
+        <script src="chrome://ybookmarks/content/ybookmarksUtils.js" type="application/x-javascript" />
+      </resources>
+  
+     <implementation implements="nsIObserver, nsIRDFObserver">
+       <constructor>
+         <![CDATA[
+                 
+           ybookmarksUtils.importSymbols(this, "addObserver", "removeObserver");
+           
+           var tagsTree               = this.tagsTree           = this.getElementByAnonid("ybbookmarks-tree-tags"); 
+           var bookmarksTree          = this.bookmarksTree      = this.getElementByAnonid("ybbookmarks-tree-bookmarks");
+           var tagsSortMenu           = this.tagsSortMenu       = this.getElementByAnonid("ybsidebar-tags-sort-menu");
+           var tagsCount              = this.tagsCount          = this.getElementByAnonid("ybsidebar-tags-count");
+           var bookmarksSortMenu      = this.bookmarksSortMenu  = this.getElementByAnonid("ybsidebar-bookmarks-sort-menu");
+           var bookmarksCount         = this.bookmarksCount     = this.getElementByAnonid("ybsidebar-bookmarks-count");
+					 var searchBookmarksMode    = this.searchBookmarksMode= this.getElementByAnonid("ybSearchBookmarksMode");
+               
+           var gSqliteStore = this.gSqliteStore = Components.classes["@yahoo.com/nsYDelLocalStore;1"].
+				          getService(Components.interfaces.nsIYDelLocalStore);              
+   
+           const theXBL = this;
+           
+          // restore search bookmarks mode from prefs
+          var mode = theXBL._prefs.getCharPref("extensions.ybookmarks@yahoo.sidebar.searchMode");
+          
+          if(!mode) mode = "fullText";
+          if(mode == "fullText") {
+            searchBookmarksMode.selectedIndex = 0;
+          } else {
+            searchBookmarksMode.selectedIndex = 1;
+          }
+          
+           // set the sort orders
+          var bookmarksSortIndex = 0;
+          try {
+            bookmarksSortIndex = this._prefs.getIntPref("extensions.ybookmarks@yahoo.sidebar.bookmarksSortSelectedIndex");
+          } catch (e) { }
+          this.bookmarksSortMenu.selectedIndex = bookmarksSortIndex;
+
+          var tagsSortIndex = 0;
+          try {
+            tagsSortIndex = this._prefs.getIntPref("extensions.ybookmarks@yahoo.sidebar.tagsSortSelectedIndex");
+          } catch (e) { }
+          this.tagsSortMenu.selectedIndex = tagsSortIndex;
+           
+           /******************************************************************************
+
+                Tag object
+
+            ******************************************************************************/
+           
+           function Tag(name, count, parent) {
+               this.Name    = name;
+               this.NumBookmarks = count;
+               this.parent  = parent;
+               this.Level   = parent ? parent.Level + 1 : 0;
+           }
+           
+           Tag.prototype.memoizeGetter = ybookmarksUtils.memoizeGetter;
+           
+           Tag.getSortOption = function() {               
+               try {
+                 var tagSortMenuID = tagsSortMenu.selectedItem.id;
+                 if(tagSortMenuID == "ybsidebar-tags-sort-menu-alpha") {
+                      return "name";
+                 } else {
+                      return "frequency";
+                 }
+               } catch(e) {
+                  var tagsSortIndex = 0;
+                  try {
+                    tagsSortIndex = ybookmarksUtils.prefs.getIntPref("extensions.ybookmarks@yahoo.sidebar.tagsSortSelectedIndex");
+                  } catch (e) {}                  
+                  return tagsSortIndex ? "frequency" : "name";
+               }               
+           }
+           
+           Tag.getAll = function Tag__getAll() {
+               var tagArray = gSqliteStore.getAllTags(null, Tag.getSortOption());
+               var resArray = [];      
+               var tagLen = tagArray.length;
+               for (var i = 0; i < tagLen; i++) {                 
+                 var tmp = tagArray.queryElementAt(i, Components.interfaces.nsIWritablePropertyBag);                 
+                 resArray[i] = new Tag(tmp.getProperty("name"), tmp.getProperty("frequency"));                 
+               }               
+               return resArray;
+           }
+           
+           Tag.search = function Tag__search(query) {
+	       query = ybookmarksUtils.trimStr(query);
+	       if(!query) {
+		  query = ' ';
+	       }
+               var tagArray = gSqliteStore.searchTags(query, Tag.getSortOption());
+               var resArray = [];
+               var tagLen = tagArray.length;
+               for (var i = 0; i < tagLen; i++) {                 
+                 var tmp = tagArray.queryElementAt(i, Components.interfaces.nsIWritablePropertyBag);                 
+                 resArray[i] = new Tag(tmp.getProperty("name"), tmp.getProperty("frequency"));                 
+               }               
+               return resArray;
+           }
+           
+           
+           Tag.prototype.getRelatedTags = function() {
+               var tagArray = gSqliteStore.getAllTags(this.Name, Tag.getSortOption());
+               var resArray = [];
+               var tagLen = tagArray.length;
+               for (var i = 0; i < tagLen; i++) {                 
+                 var tmp = tagArray.queryElementAt(i, Components.interfaces.nsIWritablePropertyBag);                 
+                 resArray[i] = new Tag(tmp.getProperty("name"), tmp.getProperty("frequency"), this);                 
+               }               
+               return resArray;
+           }
+           
+           Tag.prototype.getAncestors = function() {
+               var result = [];
+               for (var tag = this; tag != null; tag = tag.parent) { result[result.length] = tag; }
+               return result;               
+           }
+           
+           
+           /******************************************************************************
+
+                Bookmark object
+
+            ******************************************************************************/           
+
+           function Bookmark(me, parent) {               
+               this.Name = me.name;
+               this.url = me.url;
+               this.type = me.type;
+               this.description = me.description;
+               this.shared = me.shared;
+               this.icon = me.icon;
+               this.parent   = parent;
+               this.Level    = parent ? parent.Level + 1 : 0;
+           }
+           
+           Bookmark.getSortOption = function () {           
+              try {
+                   var bkSortMenuID = bookmarksSortMenu.selectedItem.id;              
+                   switch(bkSortMenuID) {
+                     case "ybsidebar-bookmarks-sort-menu-alpha"         : return "Name";
+                     case "ybsidebar-bookmarks-sort-menu-site"          : return "Site";
+                     case "ybsidebar-bookmarks-sort-menu-most-visited"  : return "MostVisited";
+                     case "ybsidebar-bookmarks-sort-menu-last-visited"  : return "LastVisited";
+                     case "ybsidebar-bookmarks-sort-menu-last-added"    : return "LastAdded";
+                     default: return "Name";    
+                   }                   
+              } catch(e) {                                
+                  var bookmarksSortIndex = 0;
+                  try {
+                    bookmarksSortIndex = ybookmarksUtils.prefs.getIntPref("extensions.ybookmarks@yahoo.sidebar.bookmarksSortSelectedIndex");                
+                  } catch(e){}
+                  switch(bookmarksSortIndex) {
+                       case 0  : return "Name";
+                       case 1  : return "Site";
+                       case 2  : return "MostVisited";
+                       case 3  : return "LastVisited";
+                       case 4  : return "LastAdded";
+                       default : return "LastAdded";
+                  }    
+              }              
+           }
+           
+           Bookmark.getAll = function() {
+           	return (gSqliteStore.getBookmarks(null, null, Bookmark.getSortOption(), null, {})).map(Bookmark.getNew);
+           }
+           
+           Bookmark.prototype.isLiveMark = function() {
+            return this.type == "Livemark" ? true : false;
+           }
+           
+           Bookmark.prototype.getLivemarkChildren = function() {
+            var theBookmark = this;
+            return (gSqliteStore.getBookmarksForLivemark(this.url, {})).map(function(feedItem) {
+                       return new Bookmark(feedItem, theBookmark);
+                   });
+           }
+
+
+           /** 
+              These functions wrap the constructor so that it can be used in an Array.map call
+           **/            
+           Tag.getNew       = function(arg) { return new Tag(arg); }
+           Bookmark.getNew  = function(arg) { return new Bookmark(arg); }                      
+           
+
+           /******************************************************************************
+
+                CustomTreeView
+
+            ******************************************************************************/
+
+           function CustomTreeView(props) {
+               this.addProperties(props);
+               this.table = [];
+               this.__defineGetter__("rowCount", function() { return this.table.length; });
+           }
+           var methods = {
+               addProperties          : function(props)            { for (var p in props) this[p] = props[p]; },
+               setData                : function(data)             { this.data = data; this.loadTable(); },
+               updateCount            : function()                 { this.countElem.value = this.rowCount; },
+               setTree                : function(treebox)          { 
+                   if (treebox && treebox !== this.treebox) {         // This check prevents loads from happening on exit
+                       this.treebox = treebox; 
+                       this.loadTable(); 
+                       if (this.initFunction) this.initFunction();
+                   }
+               },
+               listenForEvent         : function(elem, eventName, handlerFunc) {
+                   var self = this;
+                   eventHandler = function() { return self[handlerFunc](); };
+                   return elem.addEventListener(eventName, eventHandler, true);
+               },
+               hasNextSibling         : function(row, afterIndex) {   // Note: Called on Windows; not Mac
+                   var thisLevel = this.getLevel(row);
+                   var rowCount = this.rowCount;
+                   for (var t = afterIndex + 1; t < rowCount; t++) {
+                       var nextLevel = this.getLevel(t);
+                       if (nextLevel == thisLevel) return true;
+                       else if (nextLevel < thisLevel) return false;
+                   }
+                   return false;
+               },
+               getNumChildren : function(row) {
+                   var row2 = row + 1, rowCount = this.rowCount, level = this.getLevel(row);
+                   while (row2 < rowCount && this.getLevel(row2) > level) {
+                       ++row2;
+                   }
+                   return row2 - row - 1;
+               },
+               linearSearch           : function(fn) {
+                   return ybookmarksUtils.linearSearch(this.table, fn);
+               },
+               getRowByName           : function(name) {
+                   return this.linearSearch(function(x) { return x.Name == name; });
+               },
+               getRowByResourceUri    : function(resourceUri) {
+                   return this.linearSearch(function(x) { return x.resource.Value == resourceUri; });
+               },
+               invalidateRow          : function(row) {
+                   this.treebox.invalidateRow(row);
+               },
+               addNodes               : function(row, nodes) {
+                   this.table = ybookmarksUtils.arraySplice(this.table, row, nodes);
+                   this.treebox.rowCountChanged(row, +nodes.length);
+               },
+               addNode                : function(row, node) {
+                   this.table.splice(row, 0, node);
+                   this.treebox.rowCountChanged(row, +1);
+               },
+               deleteNodes            : function(row, count) {
+                   this.table.splice(row, count);
+                   this.treebox.rowCountChanged(row, -count);
+               },
+               deleteNode             : function(row) {
+                   this.table.splice(row, 1);
+                   this.treebox.rowCountChanged(row, -1);
+               },
+               closeNode              : function(row) {
+                   this.deleteNodes(row + 1, this.getNumChildren(row));
+                   this.table[row].isOpen = false;
+               },
+               openNode               : function(row) {
+                   var node = this.table[row];
+                   var childrenToInsert  = this.data.getNodes(node).map(function(x) { x.parentIndex = row; return x; });
+                   this.addNodes(row + 1, childrenToInsert);
+                   this.table[row].isOpen = true;
+               },
+               toggleOpenState        : function(row) {
+                   if (this.getLevel(row) > 0) return;
+                   if (this.isContainerOpen(row)) {
+                       this.closeNode(row);
+                   } else {
+                       this.openNode(row);
+                   }
+                   this.treebox.invalidateRow(row);
+               },
+               closeOpenedNodes       : function() {
+                   var openedNodes = [];
+                   for (var i = this.rowCount - 1; i >= 0; i--) {
+                       if (this.table[i].isOpen) {
+                           openedNodes[openedNodes.length] = this.table[i];
+                           this.closeNode(i);
+                       }
+                   }
+                   return openedNodes;
+               },
+               openNodes              : function(nodes) {
+                   for (var i = nodes.length - 1; i >= 0; i--) {
+                       var row = this.getRowByName(nodes[i].Name);
+                       if (row >= 0) {
+                           this.openNode(row);
+                       }
+                   }
+               },
+               loadTable              : function() {
+                   var oldRowCount = this.rowCount;
+                   this.table = this.data.getNodes();
+                   this.treebox.rowCountChanged(0, this.rowCount - oldRowCount);
+                   this.treebox.invalidate();
+                   this.updateCount();
+                   return this;
+               },
+               getSelectedNode        : function() {
+                   var selectedIndex = this.selection.count ? this.selection.currentIndex : -1;
+                   return selectedIndex >= 0 ? this.table[selectedIndex] : null;
+               },
+               nodeMatches            : function(aPrimaryNode, aSecondaryNode) {
+                   if (aPrimaryNode.Name !== aSecondaryNode.Name) {
+                       return false;
+                   } else if (aPrimaryNode.parent && aPrimaryNode.parent !== aSecondaryNode.parent) {
+                       return false;
+                   } else {
+                       return true;
+                   }
+               },
+               
+               clearSelection         : function() {
+                   if( this.selection && (this.selection.currentIndex > -1) ) {
+                     this.selection.clearSelection();
+                     this.selection.currentIndex = -1;
+                   }
+               },
+               selectNode             : function(aNode) {
+                   for (var i = this.rowCount - 1; i >= 0; i--) {
+                       if (this.nodeMatches(aNode, this.table[i])) {
+                           this.selection.select(i);
+                           this.treebox.ensureRowIsVisible(i);
+                       }
+                   }
+               },
+
+               isContainer            : function(row)              { return true; },
+               isContainerEmpty       : function(row)              { return this.table[row].parentIndex >= 0; },
+               isContainerOpen        : function(row)              { return this.table[row].isOpen; },
+               isSeparator            : function(row)              { return false; },
+               isSorted               : function(row)              { return false; },
+               getCellText            : function(row, col)         {
+                  return this.table[row][col.id];
+               },
+               getParentIndex         : function(row)              { return this.table[row].parentIndex || -1; },
+               getImageSrc            : function(row, col)         { return this.table[row].icon; },
+               getLevel               : function(row)              { return this.table[row].Level; },
+               getRowProperties       : function(row, props)       {},
+               getColumnProperties    : function(col, props)       {},
+               getCellProperties      : function(row, col, props)  {}
+           };
+           methods.addProperties.call(CustomTreeView.prototype, methods);
+
+
+           this.tagsTreeData = {
+               getNodes      : function(tag) { 
+                   var nodes = tag ? tag.getRelatedTags() : Tag.getAll();
+                   return nodes;
+               }
+           };
+
+           this.tagsTreeDataSearch = function(searchQuery) {
+               return {
+                   searchQuery   : searchQuery.toLowerCase(),
+                   getNodes      : function(tag)  { 
+                       try {
+                         var nodes = tag ? tag.getRelatedTags(): Tag.search(this.searchQuery);
+                         return nodes;
+                       } catch(e) {
+                         yDebug.print("Exception in tagsTreeDataSearch:" + e, YB_LOG_MESSAGE);
+                       }
+                   }
+               };
+           };
+
+
+           /******************************************************************************
+
+                tagsTreeView
+
+            ******************************************************************************/
+           this.tagsTreeView = this.tagsTree.view = new CustomTreeView({
+               data                 : this.tagsTreeData, 
+               countElem            : tagsCount, 
+               getCellValue         : function()           { return "_yb_tag_entity"; }, // required for context menu
+               sortMenuItemMap      : {
+                   "ybsidebar-tags-sort-menu-alpha"        : "Name",
+                   "ybsidebar-tags-sort-menu-freq"         : "NumBookmarks"
+               },
+               initFunction         : function() {
+                   tagsSortMenu.addEventListener("ValueChange", 
+                                                  function (event) { theXBL._onSortSelect(event); }, 
+                                                  false);
+               }
+           });
+
+
+           /******************************************************************************
+
+                bookmarksTreeView
+
+            ******************************************************************************/
+
+           this.bookmarksTreeData = {
+               getNodes      : function(livemark) {
+                   if (!livemark) {
+                       var tag = tagsTreeView.getSelectedNode();
+                       return tag ? gSqliteStore.getBookmarks(tag.Name, tag.parent ? tag.parent.Name : null, Bookmark.getSortOption(), null, {}).map(Bookmark.getNew) : Bookmark.getAll();                       
+                   } else {                       
+                       return livemark.getLivemarkChildren();
+                   }
+               }
+           };
+
+           this.bookmarksTreeDataSearch = function(searchQuery) {
+               return {
+                   searchQuery  : searchQuery.toLowerCase(),
+                   getNodes     : function(livemark) {
+											var tags = ybookmarksUtils.trimStr(searchQuery).split(' ');
+											
+                       try {
+                         if (!livemark) {
+                            var tag = tagsTreeView.getSelectedNode();
+                            return tag ? gSqliteStore.getBookmarks(tag.Name, 
+                                                                      tag.parent ? tag.parent.Name : null,
+                                                                      Bookmark.getSortOption(), null,
+                                                                      {}).map(Bookmark.getNew) 
+                                        :
+																				((searchBookmarksMode.selectedIndex == 0)
+																					? gSqliteStore.searchBookmarks(searchQuery, Bookmark.getSortOption(), null, {}).map(Bookmark.getNew)
+																					: gSqliteStore.getBookmarksIntersectionForTags(tags.length, tags, Bookmark.getSortOption(), {}).map(Bookmark.getNew)
+																				);
+                         } else {
+                             return livemark.getLivemarkChildren();
+                         }
+                       } catch(e) {
+                         yDebug.print("EXception in  bookmarksTreeDataSearch::getNodes:"  + e, YB_LOG_MESSAGE);
+                       }
+                   }
+               };
+           };
+
+           this.bookmarksTreeView = this.bookmarksTree.view = new CustomTreeView({ 
+               data                 : this.bookmarksTreeData, 
+               countElem            : bookmarksCount, 
+               isContainer          : function(row)        { return this.table[row].isLiveMark(); },
+               getCellValue         : function(row, col)   { return this.table[row].url; },
+               onTagSelect          : function()           { this.loadTable(); },
+               sortMenuItemMap      : {
+                   "ybsidebar-bookmarks-sort-menu-alpha"         : "Name",
+                   "ybsidebar-bookmarks-sort-menu-site"          : "url",
+                   "ybsidebar-bookmarks-sort-menu-most-visited"  : "visit_count",
+                   "ybsidebar-bookmarks-sort-menu-last-visited"  : "last_visited",
+                   "ybsidebar-bookmarks-sort-menu-last-added"    : "added_date"
+               },
+               getImageSrc            : function(row, col) { 
+                   if ("note" === col.id) {
+                       var bookmark = this.table[row];
+                       if (bookmark.description && (bookmark.shared == "false")) {
+                           return "chrome://ybookmarks/skin/privateNote.gif";
+                       } else if (bookmark.shared == "false") {
+                           return "chrome://ybookmarks/skin/private.gif";
+                       } else if (bookmark.description) {
+                           return "chrome://ybookmarks/skin/note.gif";
+                       }
+                   }
+                   if (!(this.table[row].isLiveMark()) && "Name" === col.id) {
+                       var bookmark = this.table[row];
+                       if(bookmark && bookmark.icon) {
+                           return bookmark.icon;
+                       } else {
+                           return ybookmarksUtils.getDefaultFavicon();
+                       }
+                   }
+                   return null;                   
+               },
+               getCellProperties    : function(row, col, props) {
+                   if (this.table[row].isLiveMark()) {
+                       props.AppendElement(ybookmarksUtils.atomService.getAtom("livemark"));
+                   }
+               },
+               initFunction         : function() {
+                   this.listenForEvent(tagsTree, "select", "onTagSelect");
+                   bookmarksSortMenu.addEventListener("ValueChange", 
+                                                  function (event) { theXBL._onSortSelect(event); }, 
+                                                  false);
+                   
+               },
+               getRowByUrl          : function(url) {
+                   return this.linearSearch(function(x) { return x.url == url; });
+               },
+               deleteBookmark       : function(url) {
+                   var row = this.getRowByUrl(url);
+                   if (row >= 0) {
+                       this.deleteNode(row);
+                   }
+               },
+               updateFavicon: function(url, data) {
+                for( var i=0; i < this.table.length; i++) {
+                  if(this.table[i].url == url) {
+                    this.table[i].icon = data;
+                    var oldRowCount = this.rowCount;
+                    this.treebox.rowCountChanged(0, this.rowCount - oldRowCount);
+                    this.treebox.invalidate();
+                    this.updateCount();
+                  }
+                }
+               },
+           });
+
+           this.getElementByAnonid("ybsidebar-search-reset").addEventListener("click", function() { theXBL.reset(); }, false);           
+           
+           //set the login state
+           this._setLoginState();
+           
+           //set the last searched keyword
+           var keyword = this._getLastSidebarSearchValue();
+           if (keyword) {
+             this.search(keyword);
+             this.iconHandler(keyword);
+             this.setSearchBoxSelect();
+           }
+
+           this.observedSubjects = ["ybookmark.userChanged",
+                                    "ybookmark.logOutStatus",
+                                    "ybookmark.importBookmarks",
+                                    "ybookmark.syncBegin",
+                                    "ybookmark.syncDone",
+                                    "ybookmark.syncInfo",
+                                    "ybookmark.bookmarkDeleted",
+                                    "ybookmark.bookmarkAdded",
+                                    "ybookmark.bookmarkEdited",
+                                    "ybookmark.migrationInProgress",
+                                    "ybookmark.migrationEnd",
+                                    "ybookmark.faviconLoaded",
+                                    "ybookmark.updateBookmarksView"];
+           for (var i = 0; i < this.observedSubjects.length; i++) {
+               this.addObserver(this.observedSubjects[i]);
+           }
+         
+         // show the URL over when mousing over login links
+         this._loginMouseOverListener = {
+           handleEvent: function(event) {
+             var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"].
+                     getService(Components.interfaces.nsIWindowMediator);
+             var recentWindow = wm.getMostRecentWindow("navigator:browser");
+             var url = event.target.getAttribute("url");
+             recentWindow.XULBrowserWindow.setOverLink(url);
+           }
+         };
+         
+         this._loginMouseOutListener = {
+            handleEvent: function(event) {
+              var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"].
+                      getService(Components.interfaces.nsIWindowMediator);
+              var recentWindow = wm.getMostRecentWindow("navigator:browser");
+          
+              recentWindow.XULBrowserWindow.setOverLink("");
+            }
+          };    
+          
+          var ss = Components.classes["@yahoo.com/socialstore/delicious;1"].
+                                     getService(Components.interfaces.nsISocialStore);
+          var loginName = document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-login-status");
+          loginName.addEventListener("mouseover", this._loginMouseOverListener, false);
+          loginName.addEventListener("mouseout", this._loginMouseOutListener, false);
+         
+          var loginDel = document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-login-status-3");
+          loginDel.setAttribute("url", deliciousService.getUrl());
+          loginDel.addEventListener("mouseover", this._loginMouseOverListener, false);
+          loginDel.addEventListener("mouseout", this._loginMouseOutListener, false);
+  
+          var loginImage = document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-login-image");
+          loginImage.setAttribute("url", deliciousService.getUrl());
+          loginImage.addEventListener("mouseover", this._loginMouseOverListener, false);
+          loginImage.addEventListener("mouseout", this._loginMouseOutListener, false);
+          
+          //Handles UI behaviour of querybox
+          //Makes use of css ybsidebar-search2 with the attribute status taking 2 values. 'focus' and 'inactive'.          
+          this.blurQueryBox = {
+              handleEvent: function(event) {                                                     
+                 var b = event.target;
+                 if(b) {                    
+                    b.setAttribute('status', 'inactive');                       
+                 }
+              }
+           };
+           this.activateQueryBox = {
+              handleEvent: function(event) {                                                     
+                var b = event.target;
+                if(b) {                 
+                    b.setAttribute('status', 'focus');                      
+                }
+              }
+           };
+           var queryBox = document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-search-query");
+           queryBox.setAttribute("status", "focus");
+           queryBox.addEventListener("blur", this.blurQueryBox, true);           
+           queryBox.addEventListener("focus", this.activateQueryBox, true);
+           
+           //Pinned or Unpinned Sidebar?, this call sets it
+           this.initPinState(); 
+          
+          //reset search on search type modification
+          searchBookmarksMode.addEventListener("click", function(e) { theXBL._search(queryBox.value); }, false);
+          
+           //listen to select event of tagstree
+           this.tagsTree.addEventListener("select", this.resetSearchIcon, false);
+      ]]>  
+      </constructor>
+
+      <destructor>
+          <![CDATA[
+        for (var i = 0; i < this.observedSubjects.length; i++) {
+           this.removeObserver(this.observedSubjects[i]);
+        }
+        try {
+          var loginName = document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-login-status");
+          loginName.removeEventListener("mouseover", this._loginMouseOverListener, false);
+          loginName.removeEventListener("mouseout", this._loginMouseOutListener, false);
+        } catch (e) {}
+        try {
+          var loginDel = document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-login-status-3");
+          loginDel.removeEventListener("mouseover", this._loginMouseOverListener, false);
+          loginDel.removeEventListener("mouseout", this._loginMouseOutListener, false);
+        } catch(e) {}
+        try {
+          var loginImage = document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-login-status-image");
+          loginImage.removeEventListener("mouseover", this._loginMouseOverListener, false);
+          loginImage.removeEventListener("mouseout", this._loginMouseOutListener, false);
+        } catch(e) {}
+        try {
+          var queryBox = document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-search-query");
+          queryBox.removeEventListener("blur", this.blurQueryBox, true);           
+          queryBox.removeEventListener("focus", this.activateQueryBox, true);
+        } catch(e) {}        
+        
+        if(!this._pinned) {
+            this.removePinListeners();            
+        }     
+		//hack to restore standard sidebar header
+        var mainWindow = window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                   .getInterface(Components.interfaces.nsIWebNavigation)
+                   .QueryInterface(Components.interfaces.nsIDocShellTreeItem)
+                   .rootTreeItem
+                   .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                   .getInterface(Components.interfaces.nsIDOMWindow); 
+        var s = mainWindow.document.getElementById("sidebar-box");           
+        if(s) {        
+          s.firstChild.hidden = false;
+        }
+        //remove listening to select event of tagstree
+        this.tagsTree.removeEventListener("select", this.resetSearchIcon, false);
+        
+				//save search mode selection preference
+				if(this.searchBookmarksMode.selectedIndex == 0) {
+					this._prefs.setCharPref("extensions.ybookmarks@yahoo.sidebar.searchMode", "fullText");
+				} else {
+					this._prefs.setCharPref("extensions.ybookmarks@yahoo.sidebar.searchMode", "tagsOnly");
+				}
+      ]]></destructor>
+      
+      
+      <field name="nextSyncTime">0</field>
+      <field name="DEFAULT_BOOKMARKS_THRESHOLD">2000</field>
+
+      <field name="_socialStore">ybookmarksUtils.socialStore</field>
+      <field name="_prefs">ybookmarksUtils.prefs</field>
+
+      <field name="yTreeTagOriginalRef">"NC:YBookmarksTagRoot"</field>
+      <field name="yTreeBmOriginalRef">"NC:BookmarksRoot"</field>
+
+      <field name="tagsTree">null</field>
+      <field name="bookmarksTree">null</field>
+
+      <field name="_stringBundle">document.getAnonymousElementByAttribute(this, 
+          "anonid", "ybsidebar-stringbundle");</field>
+
+      <field name="_showSidebarButton">document.getAnonymousElementByAttribute(this, 
+         "anonid", "ybsidebar-showSidebar");</field>
+      
+      <field name="_searchBox">document.getAnonymousElementByAttribute(this, 
+         "anonid", "ybsidebar-search-query");</field>
+      <field name="_splitter">document.getAnonymousElementByAttribute(this, 
+         "anonid", "ybsidebar-tree-splitter");</field>
+      <field name="_tagsLabelContainer">document.getAnonymousElementByAttribute(this, 
+         "anonid", "ybsidebar-tagsLabelContainer");</field>
+      <field name="_bookmarksLabelContainer">document.getAnonymousElementByAttribute(this, 
+         "anonid", "ybsidebar-bookmarksLabelContainer");</field>
+           
+      <field name="_noTagsResultsBox">document.getAnonymousElementByAttribute(this, 
+         "anonid", "ybbookmarks-no-tags-results");</field>
+      <field name="_noBookmarksResultsBox">document.getAnonymousElementByAttribute(this, 
+          "anonid", "ybbookmarks-no-bookmarks-results");</field>
+      
+      <field name="tagsLabelContainerHeight">0</field>
+
+      <!-- fields required for search progress bar functionality -->
+      <!-- How many bookmarks are searched till now. Reset this value for every search -->
+      <field name="_sofarSearched">0</field>
+      <!-- Is tag search still running? -->
+      <field name="_gotTagSearchEnd">false</field>
+      <!-- Is bookmarks search still running? -->
+      <field name="_gotBookmarkSearchEnd">false</field>
+
+      <field name="_popupShowing">true</field>
+      
+      
+      <field name="_pinned">true</field>
+      <field name="_timeout">0</field>
+      <field name="_canCloseSideBar">false</field>
+
+      <field name="tagIsSelected">false</field>
+
+      <method name="getElementByAnonid">
+        <parameter name="anonid" />
+        <body><![CDATA[
+            return document.getAnonymousElementByAttribute(this, "anonid", anonid); 
+        ]]></body>
+      </method>
+
+      
+      <!-- Following functions are for the pinned feature -->
+            
+      <method name="addPinListeners">
+        <body><![CDATA[
+            this.addEventListener("blur", this.sidebarBlur, true);
+            this.addEventListener("focus", this.sidebarFocus, true);            
+            window.top.document.addEventListener("click", this.mouseListener, true);                    
+            
+            //set sidebar pin button attributes
+            var pinButton = document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-pin-button");
+            pinButton.setAttribute("class", "yb-nopin-button");
+            pinButton.setAttribute("tooltiptext", this._stringBundle.getString("extensions.ybookmarks.ybsidebar.header.pinButttonOpenLabel", "Click to keep this sidebar open"));                                        
+        ]]></body>
+      </method>
+      
+      <method name="removePinListeners">
+        <body><![CDATA[
+            try {
+                this.removeEventListener("blur", this.sidebarBlur, true);                
+            } catch(e) {}
+            try {                
+                this.removeEventListener("focus", this.sidebarFocus, true);
+            } catch(e) {}
+            try {                
+            window.top.document.removeEventListener("click", this.mouseListener, true);
+            } catch(e) {}
+            var info = Components.classes["@mozilla.org/xre/app-info;1"]
+                     .getService(Components.interfaces.nsIXULAppInfo);
+			var ver = info.version.substring(0,2);
+            if(ver == "2.") {
+	            //Works for FF2+
+	            var container = window.top.document.getElementById("content").tabContainer;	            
+	            if(container) {
+	                try {
+	                    container.removeEventListener("TabSelect", this.timedClose, false);	              
+	                } catch(e) {}
+	            }
+            } else if(ver == "1.") {
+            	var container = window.top.document.getElementById("content").mPanelContainer;
+            	if(container) {
+                	try {
+                	    container.removeEventListener("select", this.timedClose, false);
+                	} catch(e) {}
+                }
+            }
+            var pinButton = document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-pin-button");
+            pinButton.setAttribute("class", "yb-pin-button");
+            pinButton.setAttribute("tooltiptext", this._stringBundle.getString("extensions.ybookmarks.ybsidebar.header.pinButttonHideLabel", "Click to automatically hide this sidebar"));             
+        ]]></body>
+      </method>
+      
+      <method name="tryClosingSidebar">              
+              <body><![CDATA[                
+                if(this._canCloseSideBar) {
+                    this._canCloseSideBar = false;
+                    window.clearTimeout(this._timeout);
+                    window.top.ybsidebar.closeSidebar();
+                }                
+                
+              ]]></body>
+              </method>   
+              
+       <method name="sidebarBlur">
+              <body><![CDATA[
+                this._canCloseSideBar = true;
+                var me = this;
+                _timeout = setTimeout(function() { me.tryClosingSidebar(); }, 500);
+              ]]></body>
+            </method>
+
+       <method name="timedClose">
+              <body><![CDATA[
+                setTimeout(window.top.ybsidebar.closeSidebar(),500);                
+              ]]></body>
+            </method>   
+            
+       <method name="sidebarFocus">
+              <body><![CDATA[                
+                window.clearTimeout(this._timeout);
+                this._canCloseSideBar = false;
+              ]]></body>
+            </method>        
+      
+      <method name="mouseListener">
+        <parameter name="event" />
+        <body>
+          <![CDATA[                            
+               var sidebar = window.top.document.getElementById("sidebar");
+               if(sidebar) {
+                 if(sidebar.boxObject) {  
+                   
+                    //Weird hack just for click on tags sort popup and bookmark sort popup. FF3 loses focus of sidebar on clicking on these popups
+                    if(event.originalTarget.id.indexOf("ybsidebar-tags-sort-menu") != -1 || event.originalTarget.id.indexOf("ybsidebar-bookmarks-sort-menu") != -1) {
+                      return true;
+                    }
+                   
+                   if((event.screenX >= sidebar.boxObject.screenX) && (event.screenX <= (sidebar.boxObject.screenX + sidebar.boxObject.width + 10))
+                      && (event.screenY >= sidebar.boxObject.screenY) && (event.screenY <= (sidebar.boxObject.screenY + sidebar.boxObject.height))) {
+                        return true;  
+                   } else {
+                       if(!window.top.ybsidebar._pinned) {
+                        setTimeout(window.top.ybsidebar.closeSidebar(),500);
+                       }                  
+                   }                                
+                 }
+               }
+        ]]></body>
+      </method>
+      
+      <method name="initPinState">              
+              <body><![CDATA[
+                  try {
+                    this._pinned = this._prefs.getBoolPref( "extensions.ybookmarks@yahoo.sidebar.pinned" );                    
+                  } catch ( e ) {}                                    
+                  if(!this._pinned) {
+                    //Add listeners for pin
+                    this.addPinListeners();
+                  }
+              ]]></body>
+            </method>      
+            
+      <method name="togglePinState">              
+              <body><![CDATA[
+                  //toggle pin state
+                  if(this._pinned == true) {
+                    this._pinned = false;
+                  } else {
+                    this._pinned = true;
+                  }
+                  this._prefs.setBoolPref("extensions.ybookmarks@yahoo.sidebar.pinned", this._pinned);
+                  var pinButton = document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-pin-button");                  
+                  if(!this._pinned) {
+                    //Add listeners for pin
+                    this.addPinListeners();                    
+                  } else {
+                    this.removePinListeners();                    
+                  }
+                  this.setSearchBoxFocus();
+              ]]></body>
+            </method>            
+
+    <!--  end of pin functions -->
+    
+      <method name="observe">
+        <parameter name="aSubject"/>
+        <parameter name="aTopic"/>
+        <parameter name="aData"/>
+        <body>
+                    <![CDATA[
+
+          if (aTopic == "ybookmark.userChanged" || ("ybookmark.logOutStatus" == aTopic)) {
+
+            this._setLoginState();
+
+          } else if ( aTopic == "ybookmark.importBookmarks" ) {
+            
+            if (this._searchBox.value) {
+              return;
+            }            
+
+
+            aSubject.QueryInterface(Components.interfaces.nsISupportsString);
+            if ((aSubject.data == "importProgress" && (aData == "complete" || aData == "failed")) 
+                   || aSubject.data == "importError") {
+
+              var tagsRef = this._getTreeRef("tags");
+              this.tagsTree.setAttribute("ref", tagsRef);
+              var bookmarksRef = this._getTreeRef("bookmarks")
+              this.bookmarksTree.setAttribute("ref", bookmarksRef);
+                
+              if (tagsRef.length) {
+                this._showNoSearchResults("tags", false);
+                this._showNoSearchResults("bookmarks", false);
+              }
+              else {
+                this._showEmptyPane("tags");
+                this._showEmptyPane("bookmarks");
+              }
+            }
+            else {              
+              
+              if (!this._hasBookmarks()) {
+                this._showImportingPane("tags");
+                this._showImportingPane("bookmarks");
+              }
+              else {
+                var tagsRef = this._getTreeRef("tags");
+                this.tagsTree.setAttribute("ref", tagsRef);
+                var bookmarksRef = this._getTreeRef("bookmarks")
+                this.bookmarksTree.setAttribute("ref", bookmarksRef);
+                
+                if (tagsRef.length) {
+                  this._showNoSearchResults("tags", false);
+                  this._showNoSearchResults("bookmarks", false);
+                }
+                else {
+                  this._showEmptyPane("tags");
+                  this._showEmptyPane("bookmarks");
+                }
+              }
+            }
+          } else if ("ybookmark.syncBegin" === aTopic) {
+              if ("remove-extra" === aData) {
+                this.tagsTreeView.loadTable(); 
+                this.bookmarksTreeView.loadTable();
+                this.removingAllData = true;
+              }
+          } else if ("ybookmark.syncInfo" === aTopic) {
+            if("more-chunk" === aData) {
+                this.tagsTreeView.loadTable(); 
+                this.bookmarksTreeView.loadTable();
+            }
+          } else if ("ybookmark.syncDone" === aTopic) {
+              if ("remove-extra" === aData) {
+                  this.removingAllData = false;
+                  this.tagsTreeView.loadTable();
+                  this.bookmarksTreeView.loadTable();
+              }
+              
+              if ("all-done" === aData) {
+                this.tagsTreeView.loadTable(); 
+                this.bookmarksTreeView.loadTable();
+              }
+          } else if ("ybookmark.bookmarkDeleted" === aTopic || 
+                     "ybookmark.bookmarkAdded" === aTopic || 
+                     "ybookmark.bookmarkEdited" === aTopic ||
+                     "ybookmark.migrationInProgress" === aTopic ||
+                     "ybookmark.migrationEnd" === aTopic) {
+                this.tagsTreeView.loadTable();
+			    this.bookmarksTreeView.loadTable();                
+          } else if ("ybookmark.faviconLoaded" === aTopic) {
+            var data = aData.split(" ");
+            this.bookmarksTreeView.updateFavicon(data[0], data[1]);
+          } else if("ybookmark.updateBookmarksView" == aTopic) {
+            this.bookmarksTreeView.loadTable();
+          }
+          
+        ]]></body>
+      </method>
+
+      <method name="_populateTreesWithSearchResults">
+        <parameter name="type"/>     
+        <parameter name="searchTerm"/>     
+        <body>
+                  <![CDATA[            
+            //yDebug.print("ybSidebarOverlay._populateTreesWithSearchResults: type = " + type + "; searchTerm = " + searchTerm);
+            if (type == "tags") {
+                this.tagsTreeView.setData(new this.tagsTreeDataSearch(searchTerm));
+                if(this.tagsTreeView.countElem.value == 0) this._showNoSearchResults("tags", true);
+            } else if (type == "bookmarks") {
+                this.bookmarksTreeView.setData(new this.bookmarksTreeDataSearch(searchTerm));
+                if(this.bookmarksTreeView.countElem.value == 0) this._showNoSearchResults("bookmarks", true);
+            }
+            
+        ]]></body>
+      </method>
+      
+      <method name="_hasBookmarks">
+        <body><![CDATA[
+          
+           var count = this.gSqliteStore.getTotalBookmarks();
+
+            if(count > 0) return true;
+           
+           return false;
+           
+        ]]></body>
+      </method>
+
+      
+      <method name="_setLoginState">
+        <body>
+              <![CDATA[
+          
+          var username = this._socialStore.getUserName();
+          var element = document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-login-status");
+          try{
+            element.removeEventListener("click", this._login, true);
+          }
+          catch(e) {}
+
+          if (username) {
+            var url = deliciousService.getUrl(username);
+
+            element.removeAttribute("class");
+            element.setAttribute("value", username);
+            element.setAttribute("onclick", "_openUrl(event, '" + url + "')");
+            element.setAttribute("class", "ysidebar-textlink");
+            element.setAttribute("linktype", "standard");
+            element.setAttribute("url", url);
+            
+            //show preposition accordingly
+            document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-login-status-2-on").setAttribute("hidden", "false");
+            document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-login-status-2-to").setAttribute("hidden", "true");
+            
+            var sidebarBottom = document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-bottomContainer-loggedout");
+            if(sidebarBottom) {
+              sidebarBottom.setAttribute("hidden", "true");
+            }
+            try {
+              var silent = Components.classes["@mozilla.org/preferences-service;1"]
+                            .getService(Components.interfaces.nsIPrefBranch)
+                            .getBoolPref("extensions.ybookmarks@yahoo.delicious.silentlogout");
+              if(silent) {                
+                document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-bottomContainer-loggedout").setAttribute("hidden", "false");
+              }
+            } catch(e) {}            
+          }
+          else {
+            var ss = Components.classes["@yahoo.com/socialstore/delicious;1"].
+                                       getService(Components.interfaces.nsISocialStore);
+
+            element.addEventListener("click", this._login, true);
+            element.removeAttribute("class");
+            element.setAttribute("class", "ysidebar-textlink");
+            element.setAttribute("value", this._stringBundle.getString("ybookmarks.login", [username]));
+            element.setAttribute("linktype", "standard");
+            element.setAttribute("url", ss.login_url);
+
+            //show preposition accordingly
+            document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-login-status-2-on").setAttribute("hidden", "true");
+            document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-login-status-2-to").setAttribute("hidden", "false");
+            
+            //Bottom bar            
+            try {
+              var pref_Service = Components.classes["@mozilla.org/preferences-service;1"]
+                            .getService(Components.interfaces.nsIPrefBranch);
+              var cleanLogout = pref_Service.getCharPref("extensions.ybookmarks@yahoo.delicious.logout.status");
+              if(cleanLogout == "keep") {
+                var last_login = pref_Service.getCharPref("extensions.ybookmarks@yahoo.login.last");
+                if(last_login) {
+                  var url = deliciousService.getUrl(last_login);                  
+                  try{
+                    element.removeEventListener("click", this._login, true);
+                  }
+                  catch(e) {}
+                  element.removeAttribute("class");                  
+                  element.setAttribute("value", last_login);
+                  element.setAttribute("onclick", "_openUrl(event, '" + url + "')");
+                  element.setAttribute("class", "ysidebar-textlink");
+                  element.setAttribute("linktype", "standard");
+                  element.setAttribute("url", url);                  
+                  //show preposition accordingly
+                  document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-login-status-2-on").setAttribute("hidden", "false");
+                  document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-login-status-2-to").setAttribute("hidden", "true");
+                }
+                document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-bottomContainer-loggedout").setAttribute("hidden", "false");
+              } else if(cleanLogout == "remove") {
+                document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-bottomContainer-loggedout").setAttribute("hidden", "true");               
+              }
+            } catch(e) {}
+          }
+          
+        ]]></body>     
+      </method>
+      
+      <method name="search">
+      <parameter name="input"/>     
+      <body><![CDATA[           
+           this._searchBox.value = input;
+           this._search(input);     
+           this.setSearchBoxFocus();           
+        ]]></body>
+       </method>
+
+      <method name="setSearchBoxFocus">
+      <body>
+             <![CDATA[                      
+           //Please see http://developer.mozilla.org/en/Code_snippets/Sidebar
+           var mainWindow = window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                   .getInterface(Components.interfaces.nsIWebNavigation)
+                   .QueryInterface(Components.interfaces.nsIDocShellTreeItem)
+                   .rootTreeItem
+                   .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                   .getInterface(Components.interfaces.nsIDOMWindow); 
+           var s = mainWindow.document.getElementById("sidebar-box");
+           if(s) {        
+            //hack to hide standard sidebar header
+            s.firstChild.hidden = true;
+           }           
+           this._searchBox.focus();
+         ]]></body>
+       </method>
+
+      <method name="setSearchBoxSelect">
+      <body><![CDATA[           
+           if (this._searchBox.value.length) {
+             this._searchBox.select();
+           }
+           this.setSearchBoxFocus();            
+         ]]></body>
+      </method>
+
+      <method name="_setLastSidebarSearchValue">
+        <parameter name="keyword"/>
+        <body><![CDATA[          
+          window.top.ybsidebar.lastSidebarSearchValue = keyword;
+       ]]></body>
+      </method>
+
+
+      <method name="_getLastSidebarSearchValue">
+        <body><![CDATA[
+          return window.top.ybsidebar.lastSidebarSearchValue;
+       ]]></body>
+      </method>
+
+      <method name="_createContextMenu">
+        <parameter name="event"/>
+        <body><![CDATA[
+		try {
+	         var target = document.popupNode;
+	         var tree = this._getTree(target);
+	         if(!tree) {
+	           target.removeAttribute("open");
+	           return false;         
+	         }
+	         
+	         var row = tree.currentIndex;
+	         var col = tree.columns.getNamedColumn('Name');
+	         var url = tree.view.getCellValue(row, col);
+	
+	         var livemark = this._isCurrentLivemark(tree);
+	                
+	         if (!livemark && (tree.view.isContainer(row)  || !url) && (url != "_yb_tag_entity")) {
+	           target.removeAttribute("open");
+	           return false;
+	         }
+	         
+	         var menu = document.getAnonymousElementByAttribute( this, "id", "ybContextMenu" );
+
+			 //if multiple selection - show mail to menu option
+	         if(tree.view.selection.count > 1) {
+		         var i;
+		         if (url == "_yb_tag_entity") {         // tag
+		           for( i = 0; i < menu.childNodes.length; ++i ) {
+		             ( menu.childNodes[ i ] ).hidden = true;
+		           }
+		          ( document.getAnonymousElementByAttribute(
+		                       this, "anonid", "ybContextMenu-mailTagLinks" ) ).hidden = false;
+		         }
+		         else {                                // normal bookmark
+		           for( i = 0; i < menu.childNodes.length; ++i ) {
+		             ( menu.childNodes[ i ] ).hidden = true;
+		           }
+		           ( document.getAnonymousElementByAttribute( 
+		                        this, "anonid", "ybContextMenu-mailLinks" ) ).hidden = false;
+		         }				 
+			//do regular stuff when only one node is selected
+	         } else {
+		         var i;
+		         if (url == "_yb_tag_entity") {         // tag
+		           for( i = 0; i < menu.childNodes.length; ++i ) {
+		             ( menu.childNodes[ i ] ).hidden = true;
+		           }
+		          ( document.getAnonymousElementByAttribute(
+		                       this, "anonid", "ybContextMenu-openContainer" ) ).hidden = false;
+		          ( document.getAnonymousElementByAttribute(
+		                       this, "anonid", "ybContextMenu-openTag" ) ).hidden = false;
+		          ( document.getAnonymousElementByAttribute(
+		                       this, "anonid", "ybContextMenu-mailTagLink" ) ).hidden = false;
+		         }
+		         else if (livemark) {
+		           for( i = 0; i < menu.childNodes.length; ++i ) {
+		             ( menu.childNodes[ i ] ).hidden = true;
+		           }
+		          ( document.getAnonymousElementByAttribute(
+		                       this, "anonid", "ybContextMenu-mailLink" ) ).hidden = false;
+		           ( document.getAnonymousElementByAttribute(
+		                        this, "anonid", "ybContextMenu-delete-bookmark" ) ).hidden = false;
+		           ( document.getAnonymousElementByAttribute(
+		                        this, "anonid", "ybContextMenu-separator3" ) ).hidden = false;
+		           ( document.getAnonymousElementByAttribute( 
+		                        this, "anonid", "ybContextMenu-about" ) ).hidden = false;
+		           ( document.getAnonymousElementByAttribute( 
+		                        this, "anonid", "ybContextMenu-properties" ) ).hidden = false;
+		         } 
+		         else {                                // normal bookmark
+		           for( i = 0; i < menu.childNodes.length; ++i ) {
+		             ( menu.childNodes[ i ] ).hidden = false;
+		           }
+		           ( document.getAnonymousElementByAttribute( 
+		                        this, "anonid", "ybContextMenu-openContainer" ) ).hidden = true;
+		          ( document.getAnonymousElementByAttribute(
+		                        this, "anonid", "ybContextMenu-openTag" ) ).hidden = true;
+		          ( document.getAnonymousElementByAttribute(
+		                        this, "anonid", "ybContextMenu-mailLinks" ) ).hidden = true;
+		          ( document.getAnonymousElementByAttribute(
+		                        this, "anonid", "ybContextMenu-mailTagLinks" ) ).hidden = true;
+		          ( document.getAnonymousElementByAttribute(
+		                        this, "anonid", "ybContextMenu-mailTagLink" ) ).hidden = true;
+		         }              
+	         }    
+         } catch(e) {
+         	yDebug.print("ybSidebarOverlay.xml::CreateContextMenu::Error"+e, YB_LOG_MESSAGE);
+         }
+         return true;
+        ]]></body>
+      </method>
+        
+      <method name="_openURLIn">
+        <parameter name="event"/>
+        <parameter name="tree"/>
+        <parameter name="where"/>
+        <body><![CDATA[
+            try {
+                var row = tree.currentIndex;
+                if (tree.view.rowCount <= 0) {
+                    return;
+                }
+
+                if (!tree.view.isContainer(row)) {
+                    var url = tree.view.getCellValue(row, tree.columns.getNamedColumn("Name"));
+                    if (url != "_yb_tag_entity") {
+                        event.target.setAttribute("type", "Bookmark");
+                        event.target.setAttribute("url", url);  
+                        ybookmarksUtils.openBookmark(event, where);
+                        //hack
+                        if(!this._pinned) {
+                            this._canCloseSideBar = true;
+                            this.sidebarBlur();
+                        }
+                    }
+                }
+            } catch (e) { yDebug.print(e, YB_LOG_MESSAGE); }
+         ]]></body>
+       </method>
+
+      <method name="_newBookmark">
+        <body><![CDATA[          
+           if(this._pinned) {
+  			   ybBookmarksMenu.newBookmark();  			   
+           } else {
+	           //hack for unpinned mode alone           
+	           Components.classes["@mozilla.org/observer-service;1"]
+		      	   .getService(Components.interfaces.nsIObserverService)
+		           .notifyObservers(null, "ybookmark.addBookmark", "");
+		       window.top.ybsidebar.closeSidebar();    
+	       }
+         ]]></body>
+       </method>
+      
+      <method name="_editBookmark">
+        <parameter name="event"/>
+        <parameter name="tree"/>
+        <body><![CDATA[          
+           var row = tree.currentIndex;
+           var url = tree.view.getCellValue(row, tree.columns.getNamedColumn('Name'));           
+           if(this._pinned) {	           
+               //TODO: Fails as tags info is missing
+	           yAddBookMark.open(url);           
+           } else {
+	           //trick for unpinned mode alone
+	           Components.classes["@mozilla.org/observer-service;1"]
+		      	   .getService(Components.interfaces.nsIObserverService)
+		           .notifyObservers(null, "ybookmark.addBookmark", url);
+		       window.top.ybsidebar.closeSidebar();    
+	       }
+         ]]></body>
+       </method>
+
+      <method name="_moreAbout">
+        <parameter name="event"/>
+        <parameter name="tree"/>
+        <body><![CDATA[
+               try {
+                 var row = tree.currentIndex;
+                 var url = tree.view.getCellValue(row, tree.columns.getNamedColumn('Name'));
+                                 var livemark = this._isCurrentLivemark(tree);
+                                
+                 if (livemark || !tree.view.isContainer(row)) {
+                    event.target.setAttribute("type", "Bookmark");
+                    event.target.setAttribute("url",
+                        deliciousService.getMoreAboutUrl(url));
+                    ybookmarksUtils.openBookmark(event, "current");
+                 }
+               } catch (e) { yDebug.print( "ybSidebarOverlay._moreAbout(): " + e, YB_LOG_MESSAGE); }
+
+         ]]></body>
+       </method>
+
+      <method name="_openTag">
+        <parameter name="event"/>
+        <parameter name="tree"/>
+        <body><![CDATA[
+          try {
+            var row = tree.currentIndex;
+            var value = tree.view.getCellText( row, ( tree.columns ).getNamedColumn( 'Name' ) );
+            ybookmarksUtils.openTag(value, event);
+          } catch ( e ) { 
+            yDebug.print( "ybSidebarOverlay._openTag() exception: " + e, YB_LOG_MESSAGE); 
+          }
+        ]]></body>
+      </method>
+
+
+      <!-- This method opens all children in the bookmark view. -->
+      <method name="_openContainer">
+        <parameter name="event"/>
+        <parameter name="tree"/>
+        <body><![CDATA[
+          try {
+            var row = tree.currentIndex;
+            var value = tree.view.getCellValue( row, ( tree.columns ).getNamedColumn( 'Name' ) );
+            if( value == "_yb_tag_entity" ) {
+              if( tree.view.isContainerOpen( row ) ) {
+                var urls = new Array();
+                var i = row + 1;
+                while( i < tree.view.rowCount ) {
+                  if( tree.view.getParentIndex( i ) != row ) {
+                    break;
+                  }
+                  value = tree.view.getCellValue( i, ( tree.columns ).getNamedColumn( 'Name' ) );
+                  urls.push( value );
+                  ++i;
+                }
+                YBtabsOpener.openURLsInNewTab( urls );
+              }
+              else {
+                tree.view.toggleOpenState( row );
+                this._openContainer( event, tree );
+              }
+            }
+          } 
+          catch ( e ) { 
+            yDebug.print( "ybSidebarOverlay._openContainer() exception: " + e, YB_LOG_MESSAGE); 
+          }
+        ]]></body>
+      </method>
+
+
+      <!-- This method opens all bookmarks currently visible in the bookmark view. -->
+      <method name="_openBookmarks">
+        <parameter name="event"/>
+        <parameter name="tree"/>
+        <body>
+                      <![CDATA[
+          try {
+                var urls = new Array();
+                for(i = 0; i < this.bookmarksTreeView.table.length; ++i) {
+                    var bm = this.bookmarksTreeView.table[i];                    
+                    if ( !(bm.isLiveMark()) ) {
+                        urls.push(bm.url);
+                    }
+                }
+                YBtabsOpener.openURLsInNewTab( urls );
+          } 
+          catch ( e ) { 
+            yDebug.print( "ybSidebarOverlay._openBookmarks() exception: " + e, YB_LOG_MESSAGE); 
+          }
+        ]]></body>
+      </method>
+
+      <!-- This method opens default mail client with all selected bookmarks as message body. -->
+      <method name="_mailLinks">
+        <parameter name="event"/>
+        <parameter name="tree"/>
+        <body>
+                      <![CDATA[
+          try {
+                var urls = new Array();
+                
+                if(tree.view.selection.count > 1) {
+					var start = new Object();
+					var end = new Object();
+					var numRanges = tree.view.selection.getRangeCount();
+					
+					for (var t = 0; t < numRanges; t++){
+					  tree.view.selection.getRangeAt(t,start,end);
+					  for (var v = start.value; v <= end.value; v++){
+					    urls.push(tree.view.getCellText(v, tree.columns.getNamedColumn("Name")) +
+						      "\r\n" +
+						      tree.view.getCellValue(v, tree.columns.getNamedColumn("Name")));
+					  }
+					}
+				} else {
+					var row = tree.currentIndex;
+			        var col = tree.columns.getNamedColumn('Name');
+			        var url = tree.view.getCellValue(row, col);
+				var title = tree.view.getCellText(row, col);
+				urls.push(title+"\r\n"+url);
+				}
+				
+				//get top windows browser
+				var browser = ybookmarksUtils.getTopWindow().getBrowser();
+				
+				if(browser) {
+					var mailsubject = encodeURIComponent('Checkout these interesting links');
+					var mailbody = encodeURIComponent("\n"+urls.join("\r\n\r\n"));
+					var usr = (this._socialStore.getUserName()) ? this._socialStore.getUserName() : "";
+					var mailfooter = "";
+					
+					if(usr) {
+						var bksonweb = "\n\r"+this._socialStore.home_url+usr;
+						mailfooter = encodeURIComponent("\n\r\n\r\n\rYou can find more of "+usr+"'s bookmarks at "+bksonweb);
+					}
+					else {
+						mailfooter = encodeURIComponent("\n\r\n\r\n\rYou can find more bookmarks on "+this._socialStore.home_url);
+					}
+					
+					mailfooter += encodeURIComponent("\n\r\n\r ---------------------------------\n\rDelivered By Delicious.com\n\rThe tastiest bookmarks on the web");
+					
+				    var createtab3 = browser.addTab('mailto:?subject='+mailsubject+'&body='+mailbody+mailfooter);
+				    browser.removeTab(createtab3);
+			    }		
+			    
+			    tree.view.selection.clearSelection();	                
+		  } 
+          catch ( e ) { 
+            yDebug.print( "ybSidebarOverlay._mailLinks() exception: " + e, YB_LOG_MESSAGE); 
+          }
+        ]]></body>
+      </method>
+
+      <!-- This method opens default mail client with bookmarks from all selected tags as message body. -->
+      <method name="_mailTagLinks">
+        <parameter name="event"/>
+        <parameter name="tree"/>
+        <body>
+                      <![CDATA[
+          try {
+                var urls = new Array();
+                var tags = new Array();
+                
+                if(tree.view.selection.count > 1) {
+					var start = new Object();
+					var end = new Object();
+					var numRanges = tree.view.selection.getRangeCount();
+					
+					for (var t = 0; t < numRanges; t++){
+					  tree.view.selection.getRangeAt(t,start,end);
+					  for (var v = start.value; v <= end.value; v++){
+					    tags.push(tree.view.getCellText(v, tree.columns.getNamedColumn("Name")));
+					  }
+					}
+				} else {
+					var row = tree.currentIndex;
+			        var col = tree.columns.getNamedColumn('Name');
+			        var tag = tree.view.getCellText(row, col);
+					tags.push(tag);
+				}
+				
+				//get bookmarks from all the tags
+				var bks = this.gSqliteStore.getBookmarksUnionforTags(tags.length, tags, null, {});
+				for(var i = 0, len = bks.length; i < len; i++) {
+					urls.push(bks[i].name + "\r\n" + bks[i].url);
+				}
+
+				//get top windows browser
+				var browser = ybookmarksUtils.getTopWindow().getBrowser();
+				
+				if(browser) {
+					var mailsubject = encodeURIComponent('Checkout these interesting links');
+					var mailbody = encodeURIComponent("\n"+urls.join("\r\n\r\n"));
+					var tagsonweb = "\n\r";
+					var user = this._socialStore.getUserName();
+					var mailfooter = "";
+					
+					
+					for(var i=0; i < tags.length; i++) {
+						if(user) {
+							if(i==0) tagsonweb += this._socialStore.home_url+user;
+							tagsonweb += "\n\r"+this._socialStore.home_url+user+"/"+tags[i];
+						}
+						else {
+							tagsonweb += "\n\r"+this._socialStore.home_url+"popular/"+tags[i];
+						}
+					}
+					
+					if(user) {
+						mailfooter = encodeURIComponent("\n\r\n\r\n\rYou can find more of "+user+"'s bookmarks at "+tagsonweb);
+					}
+					else {
+						mailfooter = encodeURIComponent("\n\r\n\r\n\rYou can find more bookmarks on "+tagsonweb);
+					}
+					
+					mailfooter += encodeURIComponent("\n\r\n\r ---------------------------------\n\rDelivered By Delicious.com\n\rThe tastiest bookmarks on the web");
+				    
+				    var createtab3 = browser.addTab('mailto:?subject='+mailsubject+'&body='+mailbody+mailfooter);
+				    browser.removeTab(createtab3);
+			    }		
+			    
+			    tree.view.selection.clearSelection();	        
+			    this.reset();     
+		  } 
+          catch ( e ) { 
+            yDebug.print( "ybSidebarOverlay._mailLinks() exception: " + e, YB_LOG_MESSAGE); 
+          }
+        ]]></body>
+      </method>
+
+      <method name="_openHome">
+        <parameter name="event"/>
+        <body><![CDATA[
+        
+           var element = event.target;
+           while (element) {
+             if (element.nodeName == "ybsidebar") { 
+               break;
+             }
+             element = element.parentNode;
+           }
+           event.target.setAttribute("type", "Bookmark");
+           event.target.setAttribute("url", deliciousService.getUrl());   
+           ybookmarksUtils.openBookmark(event, "current");
+         ]]></body>
+       </method>
+
+      <method name="_openUrl">
+        <parameter name="event"/>
+        <parameter name="url"/>
+        <body><![CDATA[
+        
+           var element = event.target;
+           while (element) {
+             if (element.nodeName == "ybsidebar") { 
+               break;
+             }
+             element = element.parentNode;
+           }
+           event.target.setAttribute("type", "Bookmark");
+           event.target.setAttribute("url", url);   
+           ybookmarksUtils.openBookmark(event, "current");
+         ]]></body>
+       </method>
+
+      <method name="_login">
+        <parameter name="event"/>
+        <body>
+             <![CDATA[
+        
+           var element = event.target;
+           while (element) {
+             if (element.nodeName == "ybsidebar") { 
+               break;
+             }
+             element = element.parentNode;
+           }
+
+           //ybookmarksUtils.openLinkToNewTab(deliciousService.getLoginUrl());
+           event.target.setAttribute("type", "Bookmark");
+           event.target.setAttribute("url", deliciousService.getLoginUrl());   
+           ybookmarksUtils.openBookmark(event, "current");
+         ]]></body>
+       </method>
+
+
+      <method name="_deleteBookmark">
+        <parameter name="event"/>
+        <parameter name="tree"/>
+        <body>
+            <![CDATA[
+        /*  if( !YBidManager.isUserLoggedIn() ) {
+            YBidManager.promptUserLogin();
+            return;
+          }*/
+                    
+          var row = tree.currentIndex;
+          var url = tree.view.getCellValue(row, tree.columns.getNamedColumn('Name'));
+          
+          //We need to hack here to retain sidebar in unpinned mode
+          var flipped = false;
+          if(!this._pinned) {
+              flipped = true;
+          }
+          if(flipped) {
+              this.removePinListeners();
+          }          
+          //show UI
+	      ybBookmarksMenu.deleteBookmark(url);
+
+          if(flipped) {
+              //Add all listeners for pin
+              this.addPinListeners();
+          }
+          //end of hack
+          
+        //NOTE: ybBookmarksMenu.deleteBookmark(url) already calls these functions, no need to call them here
+          //this.gSqliteStore.addTransaction("deleteBookmark", 0, "bookmark", url);          
+          //var syncService = Components.classes["@mozilla.org/ybookmarks-sync-service;1"].
+          //    getService(Components.interfaces.nsIYBookmarkSyncService);                                 
+          //syncService.processTransactions();
+         ]]></body>
+       </method>
+
+     
+     <!-- Following 2 functions are for setting the right icons -->
+     <method name="iconHandler">
+        <parameter name="aInput"/>
+           <body><![CDATA[
+	   var resetButton =  this.getElementByAnonid("ybsidebar-search-reset");
+           if(aInput == "") { 
+                resetButton.setAttribute("class", "ybsidebar-search-reset-style-searchCold");
+           } else {
+                resetButton.setAttribute("class", "ybsidebar-search-reset-style-clearCold");
+           }
+           //this.getElementByAnonid("ybsidebar-search-query").setAttribute('status', 'focus');
+           ]]></body>
+     </method>     
+     
+     <method name="reseticonHandler">
+          <parameter name="aInput"/>
+           <body>
+             <![CDATA[
+           var input = this.getElementByAnonid("ybsidebar-search-query").value;
+	   var resetButton =  this.getElementByAnonid("ybsidebar-search-reset");
+           if(input == "" && !this.tagIsSelected) { 
+                if(aInput == 'hover') {
+		  resetButton.setAttribute("class", "ybsidebar-search-reset-style-searchHot");
+                } else {
+		  resetButton.setAttribute("class", "ybsidebar-search-reset-style-searchCold");
+                }
+           } else {
+                if(aInput == 'hover') {
+		  resetButton.setAttribute("class", "ybsidebar-search-reset-style-clearHot");
+                } else {
+		  resetButton.setAttribute("class", "ybsidebar-search-reset-style-clearCold");
+                }
+           }
+           ]]></body>
+     </method>
+
+     <method name="resetSearchIcon">
+           <body><![CDATA[
+           try {
+                var sidebar = this.parentNode.parentNode.parentNode.parentNode.parentNode;
+                sidebar.tagIsSelected = true;
+                document.getAnonymousElementByAttribute(sidebar, "anonid", "ybsidebar-search-reset").setAttribute("class", "ybsidebar-search-reset-style-clearCold");
+                } catch(e) { } 
+           ]]></body>
+     </method>     
+
+     <method name="_search">
+        <parameter name="aInput"/>
+           <body>
+          <![CDATA[
+              
+              this._setLastSidebarSearchValue(aInput);
+
+              if (!aInput) {
+                this.reset();
+              }   
+              else {
+
+            this._showNoSearchResults("tags", false);
+            this._showNoSearchResults("bookmarks", false);
+
+            this._populateTreesWithSearchResults("tags", aInput);
+            this._populateTreesWithSearchResults("bookmarks", aInput);
+              }                
+            ]]></body>
+     </method>
+
+     <method name="reset">
+       <body><![CDATA[
+           this._searchBox.value ="";           
+           this._setLastSidebarSearchValue("");
+           this.tagsTreeView.setData(this.tagsTreeData);
+           this.tagsTreeView.clearSelection();
+           this._showNoSearchResults("tags", false);
+           this.bookmarksTreeView.setData(this.bookmarksTreeData);
+           this.bookmarksTreeView.clearSelection();
+           this._showNoSearchResults("bookmarks", false);
+           this.tagIsSelected = false;
+       ]]></body>
+     </method>
+
+      <method name="_showNoSearchResults">
+        <parameter name="type"/>     
+        <parameter name="show"/>     
+        <body><![CDATA[         
+           
+           var index = show? 1 : 0;
+           if (type == "tags") {
+             
+             var deck = document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-tags-deck");
+             deck.setAttribute("selectedIndex", index);
+             this._noTagsResultsBox.firstChild.setAttribute("selectedIndex", 0);
+             this._noTagsResultsBox.collapsed = !show;
+           }
+           else if (type == "bookmarks") {
+             
+             var deck = document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-bookmarks-deck");
+             deck.setAttribute("selectedIndex", index);
+             this._noBookmarksResultsBox.firstChild.setAttribute("selectedIndex", 0);
+             this._noBookmarksResultsBox.collapsed = !show;
+           }
+
+       ]]></body>
+      </method>
+
+      <method name="_showEmptyPane">
+        <parameter name="type"/>     
+        <body><![CDATA[         
+           
+           var index = 1;
+           if (type == "tags") {
+             
+             var deck = document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-tags-deck");
+             deck.setAttribute("selectedIndex", index);
+             this._noTagsResultsBox.firstChild.setAttribute("selectedIndex", 1);
+             this._noTagsResultsBox.collapsed = false;
+           }
+           else if (type == "bookmarks") {
+             
+             var deck = document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-bookmarks-deck");
+             deck.setAttribute("selectedIndex", index);
+             this._noBookmarksResultsBox.firstChild.setAttribute("selectedIndex", 1);
+             this._noBookmarksResultsBox.collapsed = false;
+           }
+
+       ]]></body>
+      </method>
+  
+
+      <method name="_showImportingPane">
+        <parameter name="type"/>     
+        <body><![CDATA[         
+           
+           var index = 1;
+           if (type == "tags") {
+             
+             var deck = document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-tags-deck");
+             deck.setAttribute("selectedIndex", index);
+             this._noTagsResultsBox.firstChild.setAttribute("selectedIndex", 2);
+             this._noTagsResultsBox.collapsed = false;
+           }
+           else if (type == "bookmarks") {
+             
+             var deck = document.getAnonymousElementByAttribute(this, "anonid", "ybsidebar-bookmarks-deck");
+             deck.setAttribute("selectedIndex", index);
+             this._noBookmarksResultsBox.firstChild.setAttribute("selectedIndex", 2);
+             this._noBookmarksResultsBox.collapsed = false;
+           }
+
+       ]]></body>
+      </method>
+
+    
+      <method name="_searchWeb">
+        <parameter name="engine"/>     
+        <body><![CDATA[
+        
+           var url;
+           if (engine == "yahoo")
+             url = "http://search.yahoo.com/search?p=" + encodeURIComponent( this._searchBox.value ) + "&ei=UTF-8"; 
+           else 
+             url = deliciousService.getSearchUrl(this._searchBox.value);   
+           openUILinkIn ( url, "current");
+       ]]></body>       
+      </method>
+
+     <method name="_getTree">
+       <parameter name="aElement"/>
+         <body><![CDATA[
+         
+       var parentNode = aElement;
+       var elementName;
+       while (parentNode) {
+         
+         elementName = parentNode.nodeName;
+         if (elementName == "tree" || elementName == "xul:tree") {
+           
+           return parentNode;
+         }
+           
+         parentNode = parentNode.parentNode;
+       }
+       
+       return null;
+         ]]></body>
+     </method>
+
+     <method name="_changeOpenState">
+        <parameter name="tree"/>
+        <parameter name="row"/>
+        <parameter name="openState"/>
+        <body><![CDATA[
+            if (row < 0 || !tree.view.isContainer(row)) {
+                return false;
+            }
+            if (tree.view.isContainerOpen(row) != openState) {
+                tree.view.toggleOpenState(row);
+                if (row == tree.currentIndex) {
+                    var event = document.createEvent('Events');
+                    event.initEvent('OpenStateChange', true, true);
+                    tree.dispatchEvent(event);
+                }
+                return true;
+            }
+            return false;
+        ]]></body>
+     </method>
+        
+     <method name="_isCurrentLivemark">
+         <parameter name="tree"/>     
+       <body><![CDATA[
+                  var row = tree.currentIndex;
+                    var col = tree.columns.getNamedColumn('Name');
+             
+            var props = Components.classes["@mozilla.org/supports-array;1"].
+                               createInstance(Components.interfaces.nsISupportsArray);
+                    tree.view.getCellProperties(row, col, props);
+                    var as = Components.classes["@mozilla.org/atom-service;1"].
+                                  getService(Components.interfaces.nsIAtomService);
+                    var livemarkAtom = as.getAtom("livemark");
+        
+                    for (var i=0; i < props.Count(); i ++) {
+                        var p = props.GetElementAt(i);
+                          if (livemarkAtom.equals(p)) {
+                              return true;
+                          }
+                    }
+                    return false;   
+       ]]></body>
+      </method>
+      
+      <method name="_getTreeRef">
+        <parameter name="type"/>
+          <body><![CDATA[
+
+            var threshold = this.DEFAULT_BOOKMARKS_THRESHOLD;
+        try {
+          threshold = this._prefs.getIntPref( "extensions.ybookmarks@yahoo.bookmark.threshold" );
+        } catch ( e ) {
+        }
+
+        if ( this.gSqliteStore.getTotalBookmarks() > threshold ) {
+            
+              return "";
+            }
+            else {
+              if (type == "tags") {
+                  return this.yTreeTagOriginalRef;
+              }
+              else {
+              return this.yTreeBmOriginalRef;
+              }
+            }
+          
+          ]]></body>
+      </method>
+      
+      <method name="openItemOnEnter">
+        <parameter name="aEvent"/>
+        <parameter name="aTree"/>
+        <body><![CDATA[
+          var browserTarget = whereToOpenLink(aEvent);
+          this._openURLIn( aEvent, aTree, browserTarget );
+          //hack
+          if(!this._pinned) {
+              this._canCloseSideBar = true;
+              this.sidebarBlur();
+          }
+        ]]></body>
+      </method>
+      
+      <method name="openItemClick">
+        <parameter name="aEvent"/>
+        <parameter name="aTree"/>
+        <body><![CDATA[
+          var row = {}, col = {}, childElt = {};
+
+          this.bookmarksTreeView.treebox.getCellAt(aEvent.clientX,
+                                                   aEvent.clientY,
+                                                   row, col, childElt);
+                                                   
+          yDebug.print("openItemClick: childElt.value = \"" + childElt.value + "\"; row.value = " + row.value);
+          
+          if ((row.value == -1) || (col.value == null)) {
+             return;
+          }
+           
+          if ("twisty" === childElt.value) return true;
+          var browserTarget = whereToOpenLink(aEvent);
+          this._openURLIn( aEvent, aTree, browserTarget );
+          //hack
+          if(!this._pinned) {
+              this._canCloseSideBar = true;
+              this.sidebarBlur();
+          }
+        ]]></body>
+      </method>
+
+            <method name="_onSearchKeyUp">
+        <parameter name="aEvent"/>
+        <body><![CDATA[
+                    switch(aEvent.keyCode) {
+                  case aEvent.DOM_VK_DOWN:
+                      var sidebar = aEvent.target.parentNode.parentNode.parentNode.parentNode;
+                                if (sidebar._noBookmarksResultsBox.collapsed) {
+                            var bookmarksTree = sidebar.bookmarksTree;
+                                    bookmarksTree.view.selection.select(0);
+                                    bookmarksTree.focus();
+                        aEvent.preventDefault();
+                                 }
+                 break;
+                        default:
+                     }
+        ]]></body>
+      </method>
+            
+            <method name="_onSortSelect">
+              <parameter name="aEvent"/>
+        <body>
+                          <![CDATA[
+                  var menu = aEvent.target;
+                  var pref;
+                      if (menu == this.bookmarksSortMenu) {
+                        pref = "extensions.ybookmarks@yahoo.sidebar.bookmarksSortSelectedIndex";
+                        if(this._searchBox.value) {
+                          this.search(this._searchBox.value);
+                        } else {
+                          this.bookmarksTreeView.setData(this.bookmarksTreeData);
+                          this.bookmarksTreeView.clearSelection();
+                        }
+                      } else if (menu == this.tagsSortMenu) {
+                      pref = "extensions.ybookmarks@yahoo.sidebar.tagsSortSelectedIndex";
+                      if(this._searchBox.value) {
+                        this.search(this._searchBox.value);
+                      } else {
+                        this.tagsTreeView.setData(this.tagsTreeData);
+                        this.tagsTreeView.clearSelection();
+                      }
+                    }
+  
+                    if (pref) {
+                      var index = menu.selectedIndex;
+                        this._prefs.setIntPref(pref, index);
+                    }
+                    
+                    
+        ]]></body>
+            </method>
+            
+      <method name="lineWrapIntoVbox">
+        <parameter name="vbox" />
+        <parameter name="contentText" />
+        <body><![CDATA[
+        try {
+//yDebug.print("ybSidebarOverlay.xml::lineWrapIntoVbox():: Coming ", YB_LOG_MESSAGE);
+          /* 
+           * Yes, it's lame that XUL won't allow us to have a
+           * multi-line text field, so we have to resort to doing our
+           * own word wrapping and putting each line in a separate
+           * <xul:label>
+           * (See http://blogs.acceleration.net/ryan/archive/2004/09/23/310.aspx)
+           */             
+          ybookmarksUtils.removeAllChildren(vbox);             
+        
+
+          if (contentText.length > 0) {
+              var arrLines = ybookmarksUtils.lineWrap(contentText, 31);
+              for (var i = 0; i < arrLines.length; i++) {
+                  var lbl = document.createElement("label");
+                  lbl.setAttribute("value", arrLines[i]);
+                  vbox.appendChild(lbl);
+              }
+          }
+        } catch(e) {
+          yDebug.print("ybSidebarOverlay.xml::lineWrapIntoVbox():: Exception - "+e, YB_LOG_MESSAGE);
+        }
+        ]]></body>  
+      </method>
+
+      <method name="setPopupShowing">
+        <parameter name="flag"/>
+        <body>
+            <![CDATA[            
+            
+            this._popupShowing = (flag == true);
+            
+            ]]>
+        </body>
+      </method>
+      
+     </implementation>    
+
+    <handlers>
+
+      <!-- Hack to prevent ctrl-b from changing the menulist. Ctrl-b is mapped to toggle sidebar -->
+      <handler event="keypress" charcode="b" modifiers="control" phase="capturing">
+            event.stopPropagation();
+      </handler>
+ 
+      <!-- Handles tooltip --> 
+      <handler event="popupshowing" phase="capturing"><![CDATA[
+      try {
+      if ("xul:tooltip" !== event.originalTarget.nodeName) return true;
+
+	          var row = {}, col = {}, childElt = {};
+	
+	          this.bookmarksTree.treeBoxObject.getCellAt(event.clientX - event.target.boxObject.x,
+	                                                    event.clientY - event.target.boxObject.y,
+	                                                    row, col, childElt);
+	
+          if (col && col.value) {
+              col = col.value;
+              if ("Name" === col.id) {              
+                if (row) row = row.value;
+                if (row >= 0 && row < this.bookmarksTreeView.rowCount) {
+                  var name = this.bookmarksTreeView.table[row].Name;                  
+                  if(name) {
+              	  this.lineWrapIntoVbox(document.getElementById("ybBookmarkTooltipLabel"), name);
+              	  return true;
+              	}                
+              	}                
+              } else if ("note" === col.id) {                  
+                  if (row) row = row.value;                  
+                  if (row >= 0 && row < this.bookmarksTreeView.rowCount) {
+                      var desc = this.bookmarksTreeView.table[row].description;
+                      if (desc) {
+                          this.lineWrapIntoVbox(document.getElementById("ybBookmarkTooltipLabel"), desc);
+                          return true;
+                      }
+                  }
+              }
+          }
+          event.preventDefault();
+       } catch(e) {
+         yDebug.print("ybSidebarOverlay.xml::handler::popupshowing::exception: "+e, YB_LOG_MESSAGE);
+       }
+       ]]></handler>
+      
+      <handler event="mousemove" phase="capturing"><![CDATA[
+      try {
+      if(ybookmarksUtils.getFFMajorVersion() > 2) {
+	          var row = {}, col = {}, childElt = {};
+	
+	          this.bookmarksTree.treeBoxObject.getCellAt(event.clientX - event.target.boxObject.x,
+	                                                    event.clientY - event.target.boxObject.y,
+	                                                    row, col, childElt);
+
+	          if (col && col.value) {
+	              col = col.value;
+	              if ("Name" === col.id) {              
+	                if (row) row = row.value;
+	                if (row >= 0 && row < this.bookmarksTreeView.rowCount) {
+	                  var name = this.bookmarksTreeView.table[row].Name;                  
+	                  if(name) {
+	              	  this.lineWrapIntoVbox(document.getElementById("ybBookmarkTooltipLabel"), name);
+	              	  return true;
+	              	}                
+	              	}                
+	              } else if ("note" === col.id) {                  
+	                  if (row) row = row.value;                  
+	                  if (row >= 0 && row < this.bookmarksTreeView.rowCount) {
+	                      var desc = this.bookmarksTreeView.table[row].description;
+	                      if (desc) {
+	                          this.lineWrapIntoVbox(document.getElementById("ybBookmarkTooltipLabel"), desc);
+	                          return true;
+	                      }
+	                  }
+	              }
+	          }
+          }
+          event.preventDefault();
+       } catch(e) {
+         yDebug.print("ybSidebarOverlay.xml::handler::popupshowing::exception: "+e, YB_LOG_MESSAGE);
+       }
+       ]]></handler>
+
+      <handler event="mousemove" phase="capturing"><![CDATA[
+      try {
+	var row = {}, col = {}, childElt = {};
+
+	this.bookmarksTree.treeBoxObject.getCellAt(event.clientX - event.target.boxObject.x,
+						  event.clientY - event.target.boxObject.y,
+						  row, col, childElt);
+
+	if(row) {
+	  if (row) row = row.value;                  
+	  if (row >= 0 && row < this.bookmarksTreeView.rowCount) {
+	      var url = this.bookmarksTreeView.table[row].url;
+	      if (url) {
+		ybookmarksUtils.getTopWindow().XULBrowserWindow.setOverLink(url);
+		return true;
+	      }
+	  }
+	}
+       } catch(e) {
+         yDebug.print("ybSidebarOverlay.xml::handler::mousemove::exception: "+e, YB_LOG_MESSAGE);
+       }
+       ]]></handler>
+
+    </handlers>
+     
+     <content>
+      <xul:stringbundle src="chrome://ybookmarks/locale/ybookmarks.properties"
+                        anonid="ybsidebar-stringbundle"/>
+
+      <xul:tooltip id="ybBookmarkTooltip">
+        <xul:vbox id="ybBookmarkTooltipLabel" width="180px" />
+      </xul:tooltip>
+     
+      <xul:popup id="ybContextMenu"
+              onpopupshowing="return _createContextMenu(event);">
+          <xul:menuitem label="&ybcontextmenu.openInWindow.label;" anonid="ybContextMenu-open-in-window" 
+              accesskey="&ybcontextmenu.openInWindow.accesskey;" default="true"
+              oncommand="_openURLIn(event, document.popupNode.parentNode, 'current');"/>
+          <xul:menuitem label="&ybcontextmenu.openInNewWindow.label;" anonid="ybContextMenu-open-in-new-window"
+              accesskey="&ybcontextmenu.openInNewWindow.accesskey;"
+              oncommand="_openURLIn(event, document.popupNode.parentNode, 'window');"/>  
+          <xul:menuitem label="&ybcontextmenu.openInNewTab.label;" anonid="ybContextMenu-open-in-new-tab"
+              accesskey="&ybcontextmenu.openInNewTab.accesskey;"
+              oncommand="_openURLIn(event, document.popupNode.parentNode, 'tab');"/>
+          <xul:menuitem label="&ybcontextmenu.mailLink.label;" anonid="ybContextMenu-mailLink"
+              accesskey="&ybcontextmenu.mailLink.accesskey;"
+              oncommand="_mailLinks(event, document.popupNode.parentNode);"/>
+          <xul:menuseparator anonid="ybContextMenu-separator1"/>
+          <xul:menuitem label="&ybcontextmenu.newBookmark.label;" anonid="ybContextMenu-new-bookmark"
+              accesskey="&ybcontextmenu.newBookmark.accesskey;"
+              oncommand="_newBookmark();"/>
+          <xul:menuseparator anonid="ybContextMenu-separator2"/>
+          <xul:menuitem label="&ybcontextmenu.deleteBookmark.label;" anonid="ybContextMenu-delete-bookmark"
+              accesskey="&ybcontextmenu.deleteBookmark.accesskey;"
+              oncommand="_deleteBookmark(event, document.popupNode.parentNode);"/>
+          <xul:menuseparator anonid="ybContextMenu-separator3"/>
+          <xul:menuitem label="&ybcontextmenu.moreAbout.label;" anonid="ybContextMenu-about"
+                accesskey="&ybcontextmenu.moreAbout.accesskey;"
+                oncommand="_moreAbout(event, document.popupNode.parentNode);"/>
+          <xul:menuitem label="&ybcontextmenu.properties.label;" anonid="ybContextMenu-properties" 
+              accesskey="&ybcontextmenu.properties.accesskey;"
+              oncommand="_editBookmark(event, document.popupNode.parentNode);"/>      
+          <xul:menuitem label="&ybcontextmenu.openTag.label;" anonid="ybContextMenu-openTag"
+              accesskey="&ybcontextmenu.openTag.accesskey;"
+              oncommand="_openTag(event, document.popupNode.parentNode);"/>          
+          <xul:menuitem label="&ybcontextmenu.openContainer.label;" anonid="ybContextMenu-openContainer"
+              accesskey="&ybcontextmenu.openContainer.accesskey;"
+              oncommand="_openBookmarks(event, document.popupNode.parentNode);"/>
+          <xul:menuitem label="&ybcontextmenu.mailLinks.label;" anonid="ybContextMenu-mailLinks"
+              accesskey="&ybcontextmenu.mailLinks.accesskey;"
+              oncommand="_mailLinks(event, document.popupNode.parentNode);"/>
+          <xul:menuitem label="&ybcontextmenu.mailTagLink.label;" anonid="ybContextMenu-mailTagLink"
+              accesskey="&ybcontextmenu.mailTagLink.accesskey;"
+              oncommand="_mailTagLinks(event, document.popupNode.parentNode);"/>
+          <xul:menuitem label="&ybcontextmenu.mailTagLinks.label;" anonid="ybContextMenu-mailTagLinks"
+              accesskey="&ybcontextmenu.mailTagLinks.accesskey;"
+              oncommand="_mailTagLinks(event, document.popupNode.parentNode);"/>
+     </xul:popup>
+    
+      <xul:vbox flex="1" allowevents="true">
+
+        <xul:vbox anonid="ybsidebar-topContainer" allowevents="true">
+         <xul:sidebarheader align="center" anonid="ybsidebar-showSidebar" hidden="false">
+           <xul:label value ="&ybsidebar.title;" flex="10" crop="end"/>          
+           <xul:image anonid="ybsidebar-pin-button" class="yb-pin-button" tooltiptext="&ybsidebar.header.pinButttonLabel;" onclick="togglePinState();"/>
+           <!-- class tabs-closebutton is a FF style class -->
+           <xul:toolbarbutton class="tabs-closebutton yb-noMyleft yb-NoMargin" tooltiptext="&ybsidebar.header.closeButtonLabel;" oncommand="ybookmarksUtils.getTopWindow().toggleSidebar('viewYBookmarksSidebar', false);"/>           
+         </xul:sidebarheader>
+         <xul:hbox anonid="ybsidebar-searchContainer" align="center" style="padding: 0px !important;" class="ybsidebar-search">
+           <xul:label value="&ybsidebar.search.label;"/>
+           <xul:textbox anonid="ybsidebar-search-query" flex="1000" type="timed" timeout="750"
+                        class="ybsidebar-search2" 
+                        oncommand="_search(this.value);" onkeyup="_onSearchKeyUp(event);" oninput="iconHandler(this.value);"/>
+           <xul:image anonid="ybsidebar-search-reset" class="ybsidebar-search-reset-style-searchCold" onmouseover="reseticonHandler('hover');" onmouseout="reseticonHandler('out');"/>
+         </xul:hbox>
+         <xul:hbox>
+					<xul:radiogroup anonid="ybSearchBookmarksMode" orient="horizontal" flex="1">
+						<xul:spacer flex="1"/>
+						<xul:radio label="&ybsidebar.searchMode.fullText;" value="fullText"/>
+						<xul:radio label="&ybsidebar.searchMode.tagsOnly;" value="tagsOnly"/>
+						<xul:spacer flex="1"/>
+					</xul:radiogroup>
+         </xul:hbox>
+        </xul:vbox>
+        
+        <xul:vbox flex="1" class="ybsidebar-tree-container">
+          <xul:vbox flex="1">
+         <xul:hbox anonid="ybsidebar-tagsLabelContainer" class="ysidebar-label-container" align="center">
+            <xul:label value="&ybsidebar.tags.label;"/>
+                <xul:hbox pack="end" flex="1" align="center">
+                                    <xul:spacer flex="1000" />
+                  <xul:label anonid="ybsidebar-tags-count" id="ybsidebar-tags-count" value="(##)" />
+                  <xul:menulist anonid="ybsidebar-tags-sort-menu" id="ybsidebar-tags-sort-menu" label="View" flex="1" sizetopopup="none">
+                    <xul:menupopup>
+                      <xul:menuitem label="&ybsidebar.tags.by_alpha;" id="ybsidebar-tags-sort-menu-alpha" />
+                      <xul:menuitem label="&ybsidebar.tags.by_freq;" id="ybsidebar-tags-sort-menu-freq" />
+                    </xul:menupopup>
+                  </xul:menulist>
+                </xul:hbox>
+         </xul:hbox>
+             <xul:deck  anonid="ybsidebar-tags-deck" flex="1">
+               <xul:tree anonid="ybbookmarks-tree-tags" id="ybbookmarks-tree-tags" hidecolumnpicker="true" class="plain"
+                         seltype="multiple" contextmenu="ybContextMenu" flex="1">
+                 <xul:treecols>
+                   <xul:treecol id="Name" sortActive="true" sortDirection="ascending" flex="10" primary="true" hideheader="true"/>
+                   <xul:treecol id="NumBookmarks" flex="1" hideheader="true" align="end" pack="end" hidden="false"  class="ybSidebarTagNum"/>
+                 </xul:treecols>
+                 <xul:treechildren alternatingbackground="true"/>
+               </xul:tree>
+        
+          <xul:vbox anonid="ybbookmarks-no-tags-results" 
+            class="ybsidebar-no-search-result-box" 
+            flex="1" collapsed="true">
+             <xul:deck selectedIndex="0">
+               <xul:vbox>
+                 <xul:text class="ybsidebar-noSearchResultsText" value="&ybsidebar.search.noTagsFound.label;" crop="end"/>
+                 <xul:spacer class="ybsidebar-spacer"/>
+                 <xul:text class="ysidebar-textlink" 
+                   onclick="this.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode._searchWeb('delicious');" 
+                   value="&ybsidebar.search.searchDelicious.label;" crop="end"/>
+                 <xul:spacer class="ybsidebar-spacer"/>
+                 <xul:text class="ysidebar-textlink" 
+                    onclick="this.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode._searchWeb('yahoo');" 
+                    value="&ybsidebar.search.searchYahoo.label;" crop="end"/>
+               </xul:vbox>
+               <xul:description class="ybsidebar-searchText" crop="end">&ybsidebar.search.doSearch.label;</xul:description>
+               <xul:description class="ybsidebar-importingText" crop="end">&ybsidebar.import.importing.label;</xul:description>
+             </xul:deck>    
+          </xul:vbox>
+          
+          </xul:deck>
+        </xul:vbox>
+        
+    <xul:splitter anonid="ybsidebar-tree-splitter" />
+    
+          <xul:vbox flex="1">
+            <xul:hbox anonid="ybsidebar-bookmarksLabelContainer" class="ysidebar-label-container" align="center">
+              <xul:label value="&ybsidebar.bookmarks.label;"/>
+              <xul:hbox pack="end" flex="1" align="center">
+                                <xul:spacer flex="1000" />
+                <xul:label anonid="ybsidebar-bookmarks-count" id="ybsidebar-bookmarks-count" value="(##)" />
+                <xul:menulist anonid="ybsidebar-bookmarks-sort-menu" id="ybsidebar-bookmarks-sort-menu" label="View" flex="1" sizetopopup="none">
+                  <xul:menupopup>
+                    <xul:menuitem label="&ybsidebar.bookmarks.by_added_date;" id="ybsidebar-bookmarks-sort-menu-last-added" />
+                    <xul:menuitem label="&ybsidebar.bookmarks.by_alpha;" id="ybsidebar-bookmarks-sort-menu-alpha" />
+                    <xul:menuitem label="&ybsidebar.bookmarks.by_site;" id="ybsidebar-bookmarks-sort-menu-site" />
+                    <xul:menuitem label="&ybsidebar.bookmarks.by_most_visited;" id="ybsidebar-bookmarks-sort-menu-most-visited" />
+                    <xul:menuitem label="&ybsidebar.bookmarks.by_last_visited;" id="ybsidebar-bookmarks-sort-menu-last-visited" />                    
+                  </xul:menupopup>
+                </xul:menulist>
+              </xul:hbox>
+            </xul:hbox>
+            <xul:deck anonid="ybsidebar-bookmarks-deck" flex="1">     
+              <xul:tree anonid="ybbookmarks-tree-bookmarks" id="ybbookmarks-tree-bookmarks" hidecolumnpicker="true" class="plain"
+                        onclick="if(event.button == 0)
+                        			{ openItemClick(event, this); }
+                                 else if (event.button == 1) 
+                         			{ _openURLIn(event, this, 'tab'); }"
+                        onkeypress="if ((event.keyCode == KeyEvent.DOM_VK_RETURN) ||
+                                    (event.keyCode == KeyEvent.DOM_VK_ENTER))
+                                    {openItemOnEnter(event, this);}"
+                        seltype="single" contextmenu="ybContextMenu" flex="1">
+                <xul:treecols>                  
+                  <xul:treecol id="Name" flex="10" primary="true" hideheader="true" sortDirection="ascending" sortActive="true"/>
+                  <xul:treecol id="note" flex="1" hideheader="true" align="end" pack="end" hidden="false" class="ybSidebarNotes"/>
+                  <xul:treecol id="last_visited" flex="1" hideheader="true" hidden="true" />
+                  <xul:treecol id="last_added" flex="1" hideheader="true" hidden="true" />                                                                                                                                
+                </xul:treecols>
+                <xul:treechildren alternatingbackground="true"  tooltip="ybBookmarkTooltip"/>
+              </xul:tree>
+         
+          <xul:vbox anonid="ybbookmarks-no-bookmarks-results" 
+            class="ybsidebar-no-search-result-box" 
+            flex="1" collapsed="true">
+              <xul:deck selectedIndex="0">
+             <xul:vbox>
+                   <xul:label class="ybsidebar-noSearchResultsText" value="&ybsidebar.search.noBookmarksFound.label;" crop="end"/>
+                 </xul:vbox>
+                 <xul:label class="ybsidebar-searchText" crop="end"/>
+              </xul:deck>   
+          </xul:vbox>
+          </xul:deck>
+
+        </xul:vbox>
+      
+      </xul:vbox>
+
+        <xul:hbox anonid="ybsidebar-bottomContainer" class="ybsidebar-info-container" align="center" style="margin:0px;">
+             <xul:image anonid="ybsidebar-login-image" class="ybsidebar-info-image" 
+               onclick="_openHome(event);" />
+                            <xul:spacer style="width:1em;"/>
+                         <xul:description anonid="ybsidebar-login-status" value="(user)" style="margin: 0px;" class="ysidebar-textlink" />
+             <xul:description hidden="true"  anonid="ybsidebar-login-status-2-on" value="&ybsidebar.loginStatus.on;" style="margin: 0px;" />
+            <xul:description hidden="true" anonid="ybsidebar-login-status-2-to" value="&ybsidebar.loginStatus.to;" style="margin: 0px;"/>
+          
+             <xul:description anonid="ybsidebar-login-status-3" value="&ybsidebar.provider.label;" class="ysidebar-textlink" style="margin: 0px;" flex="1" crop="end"  
+                              linktype="standard" onclick="_openHome(event);" />
+        </xul:hbox>
+        <xul:hbox hidden="true" anonid="ybsidebar-bottomContainer-loggedout" align="left" style="margin:0px;padding:0px;">
+          <xul:spacer style="width:22px;"/>
+          <xul:spacer style="width:1em;"/>
+          <xul:description anonid="ybsidebar-login-status-signedout" class="ysidebar-bottom-status" 
+                           value="&ybsidebar.loginStatus.signOut;"/>
+          <xul:description anonid="ybsidebar-login-status-signagain" class="ysidebar-textlink ysidebar-bottom-status"
+                           linktype="standard" onclick="_login(event);"
+                           value="&ybsidebar.loginStatus.signAgain;"/>
+          <xul:description anonid="ybsidebar-login-status-close" class="ysidebar-bottom-status" 
+                           value="&ybsidebar.loginStatus.signClose;"/>
+        </xul:hbox>
+
+     </xul:vbox>
+    </content>    
+    
+  </binding>
+  
+  <binding id="splitter" extends="chrome://global/content/bindings/splitter.xml#splitter">
+     <implementation>
+       <constructor>         
+         <![CDATA[
+
+           this._sidebar = this.parentNode.parentNode.parentNode;
+
+           this._topContainer = document.getAnonymousElementByAttribute(this._sidebar, "anonid", "ybsidebar-topContainer");
+           this._bottomContainer =  document.getAnonymousElementByAttribute(this._sidebar, "anonid", "ybsidebar-bottomContainer");
+           
+           this.tagsTree = document.getAnonymousElementByAttribute(this._sidebar, "anonid", "ybbookmarks-tree-tags");               
+           this.bookmarksTree = document.getAnonymousElementByAttribute(this._sidebar, "anonid", "ybbookmarks-tree-bookmarks");
+           
+           this._tagsLabelContainer = document.getAnonymousElementByAttribute(this._sidebar, "anonid", "ybsidebar-tagsLabelContainer");
+           this._bookmarksLabelContainer = document.getAnonymousElementByAttribute(this._sidebar, "anonid", "ybsidebar-bookmarksLabelContainer");
+           
+         ]]>
+      </constructor>
+
+      <field name="_sidebar">null</field>
+      <field name="_topContainer">null</field>
+      <field name="_bottomContainer">null</field>
+
+      <field name="tagsTree">null</field>
+      <field name="bookmarksTree">null</field>
+
+      <field name="_bookmarksLabelContainer">null</field>
+      <field name="_tagsLabelContainer">null</field>
+       
+    </implementation>
+    <handlers>
+      <handler event="mousedown"><![CDATA[        
+        this._startDragging = true;
+      ]]></handler>
+
+
+      <handler event="mouseup"><![CDATA[
+        this._startDragging = false;
+      ]]></handler>
+
+      <handler event="mousemove"><![CDATA[
+
+        //stop if mouse up
+        if (!this._startDragging) {
+          return;
+        }  
+        
+        //set this for sidebar
+        this._sidebar.tagsLabelContainerHeight = this._tagsLabelContainer.boxObject.height;
+        
+        var previousElement = this.tagsTree.parentNode.parentNode;
+        var nextElement = this.bookmarksTree.parentNode.parentNode;
+        
+        var topExtraHeight = this._topContainer.boxObject.height + this.boxObject.height
+        var topTreeHeight = event.clientY - topExtraHeight;
+        var bottomExtraHeight = this._bottomContainer.boxObject.height;
+        var bottomTreeHeight = this._sidebar.boxObject.height - topExtraHeight - topTreeHeight - bottomExtraHeight;
+
+        //stop if the height of one of the trees is smaller than min
+        var min = 20 + this._tagsLabelContainer.boxObject.height;
+        if ((previousElement.boxObject.height < min   && 
+            event.clientY < this._topContainer.boxObject.height) ||
+            (nextElement.boxObject.height < min && 
+            event.clientY > (this._topContainer.boxObject.height + previousElement.boxObject.height + this.boxObject.height)) ||
+            topTreeHeight < min || 
+            bottomTreeHeight < min ) {
+          
+          return;
+        }
+        
+        previousElement.setAttribute("minheight", topTreeHeight);
+        previousElement.setAttribute("maxheight", topTreeHeight);
+        
+        event.preventDefault();
+        event.stopPropagation();
+
+      ]]></handler>
+
+    </handlers>
+  
+  </binding>
+    
+</bindings>
+
+<!--
+Local Variables:
+mode:javascript
+End:
+  -->

@@ -1,0 +1,55 @@
+@CHARSET "ISO-8859-1";
+
+	
+#ybJumpControl {
+	width: 300px; 
+	-moz-binding: url("chrome://ybookmarks/content/jumpAutoComplete.xml#jumpAutoComplete");
+}
+
+#ybTagAutoComplete-popup {
+	overflow: -moz-scrollbars-none;
+}
+
+jumpautocomplete .ybBookmarkSuggestionPopup .autorepeatbutton-up,
+jumpautocomplete .ybBookmarkSuggestionPopup .autorepeatbutton-down {
+  -moz-binding: none !important;
+  margin: 0px !important;
+  padding: 0px !important;
+
+}
+
+#ybTagAutoComplete-suggestions {
+	overflow: -moz-scrollbars-vertical;
+}
+
+.bookmarkSuggestionsList {
+	border: none;
+	border: solid 2px #000000;
+}
+
+.suggestionHeading {
+	font-weight: bold;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	border-bottom: solid 1px #000000;
+}
+	
+.suggestion-tag[color="white"] {
+	padding: 2px 7px 2px 7px;
+	background-color: #FFFFFF;
+}
+
+.suggestion-tag[color="grey"] {
+	padding: 2px 7px 2px 7px;
+	background-color: #EEEEEE;
+}
+
+.suggestion-tag[highlight="true"] {
+	padding: 2px 7px 2px 7px;
+  	color: white;
+  	background-color: #3274D0;
+}
+
+.suggestion-tag-title {
+	font-weight: bold;
+}

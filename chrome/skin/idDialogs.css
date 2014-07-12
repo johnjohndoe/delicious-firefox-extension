@@ -1,0 +1,28 @@
+#dlg_loggedOut {
+  width: 400px;
+}
+
+#dlg_reqUserCred {
+  width: 400px;
+}
+
+#dlg_wizCancelled {
+  width: 400px;
+}
+
+
+.doubly-padded {
+  padding: 20px 20px 20px 20px;
+}
+
+.singly-padded {
+  padding: 10px 10px 10px 10px;
+}
+
+.no-margin {
+  margin-left: 0px;
+  margin-right: 0px;
+}
+spacer.line {
+  height: 1em;
+}

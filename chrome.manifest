@@ -1,0 +1,62 @@
+content	ybookmarks	chrome/content/
+locale	ybookmarks	en-US         chrome/locale/en-US/
+skin	ybookmarks	classic/1.0 chrome/skin/
+resource	ybookmarks  resource/
+
+#List interfaces
+interfaces	components/nsISocialStore.xpt
+interfaces	components/nsISocialStoreCallback.xpt
+interfaces	components/nsIYBookmark.xpt
+interfaces	components/nsIYBookmarkSyncService.xpt
+interfaces	components/nsIYBundle.xpt
+interfaces	components/nsIYDebugService.xpt
+interfaces	components/nsIYDelLocalStore.xpt
+
+#List XPCOM Components
+#Awesomebar Search
+component {3ED8F9B4-53FC-49da-B7BD-01A7B22EABDF} components/deliciousAwesomebarSearch.js
+contract @mozilla.org/autocomplete/search;1?name=delicious {3ED8F9B4-53FC-49da-B7BD-01A7B22EABDF}
+category profile-after-change DeliciousAutocompleteSearch @mozilla.org/autocomplete/search;1?name=delicious
+
+#Autocomplete Search Share
+component {CF2E16CE-44FD-11DE-A597-400056D89593} components/nsIAutoCompleteSearchShare.js
+contract @mozilla.org/autocomplete/search;1?name=delicious-share {CF2E16CE-44FD-11DE-A597-400056D89593}
+category profile-after-change AutocompleteSearchShare @mozilla.org/autocomplete/search;1?name=delicious-share
+
+#Bookmark sync service
+component {723A9B07-CA88-4386-B916-5E180837EDA8} components/nsYBookmarkSyncService.js
+contract @mozilla.org/ybookmarks-sync-service;1 {723A9B07-CA88-4386-B916-5E180837EDA8}
+category profile-after-change BookmarkSyncService @mozilla.org/ybookmarks-sync-service;1
+
+#Debug Service
+component {559013d0-6099-11db-b0de-0800200c9a66} components/nsYDebugService.js
+contract @mozilla.org/ybookmarks-debug-service;1 {559013d0-6099-11db-b0de-0800200c9a66}
+category profile-after-change DebugService @mozilla.org/ybookmarks-debug-service;1
+
+#Local Storage
+component {96057d87-098d-4ad0-9e99-9870bbade0c8} components/nsYDelLocalStore.js
+contract @yahoo.com/nsYDelLocalStore;1 {96057d87-098d-4ad0-9e99-9870bbade0c8}
+category profile-after-change DeliciousLocalStore @yahoo.com/nsYDelLocalStore;1
+
+#SSR Delicious
+component {983c8b92-39a6-40dc-8289-7087c1272e6e} components/ssrDelicious.js
+contract @yahoo.com/socialstore/delicious;1 {983c8b92-39a6-40dc-8289-7087c1272e6e}
+category profile-after-change SSRDelicious @yahoo.com/socialstore/delicious;1
+
+#Common Autocomplete
+component {6224daa1-71a2-4d1a-ad90-01ca1c08e323} components/ybAutoComplete.js
+contract @mozilla.org/autocomplete/search;1?name=ybookmarks-autocomplete {6224daa1-71a2-4d1a-ad90-01ca1c08e323}
+category profile-after-change DeliciousAutoComplete @mozilla.org/autocomplete/search;1?name=ybookmarks-autocomplete
+
+#List Overlays
+overlay	chrome://browser/content/browser.xul	chrome://ybookmarks/content/ybookmarksOverlay.xul
+overlay	chrome://browser/content/browser.xul	chrome://ybookmarks/content/ybSidebarOverlay.xul
+overlay	chrome://browser/content/browser.xul	chrome://ybookmarks/content/ybookmarksStatusOverlay.xul
+overlay	chrome://browser/content/bookmarks/addBookmark2.xul	chrome://ybookmarks/content/ybAddBookmark2.xul
+overlay	chrome://browser/content/places/places.xul	chrome://ybookmarks/content/ybPlacesManager.xul
+
+#List Styles
+style	chrome://global/content/customizeToolbar.xul	chrome://ybookmarks/skin/overlay.css
+
+#below needed for Mac
+overlay	chrome://browser/content/macBrowserOverlay.xul	chrome://ybookmarks/content/ybookmarksOverlay.xul

@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://ybookmarks/skin/idDialogs.css" type="text/css"?>
+
+<!DOCTYPE page SYSTEM "chrome://ybookmarks/locale/idManager.dtd">
+
+<window
+   id="dlg_reqUserCred" 
+   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+   xmlns:html="http://www.w3.org/1999/xhtml"
+   persist="screenX screenY"
+   onload="YBidManager.acctSetupDlgShown();">
+
+  <script src="chrome://ybookmarks/content/yDebug.js" type="application/x-javascript" />
+  <script src="chrome://ybookmarks/content/providerApis.js" type="application/x-javascript" />  
+  <script src="chrome://browser/content/utilityOverlay.js" type="application/x-javascript" />
+  <script src="chrome://ybookmarks/content/ybookmarksUtils.js" type="application/x-javascript" />  
+  <script src="chrome://ybookmarks/content/ybMenus.js" type="application/x-javascript" />  
+  <script src="chrome://ybookmarks/content/idManager.js" type="application/x-javascript" />
+
+  
+  <stringbundleset>
+    <stringbundle id="strbndl_idManager" src="chrome://ybookmarks/locale/idManager.properties"/>
+  </stringbundleset>
+
+	<vbox class="doubly-padded">
+    <description id="desc_mainText" />
+		<spacer class="line"/>
+      <!--
+      <label value="&reqUserCred.setup.label;" class="text-link no-margin"
+           onclick="YBidManager.showLoginPage();" />     
+      -->
+    <hbox>
+      <spacer flex="1"/>
+      <button id="login_reqUserCred" label="&reqUserCred.login.label;" default="true"
+              accesskey="&reqUserCred.login.accesskey;" oncommand="YBidManager.showLoginPage();" tabindex="1"/>
+      <button id="cancel_reqUserCred" label="&reqUserCred.cancel.label;" 
+              accesskey="&reqUserCred.cancel.accesskey;" oncommand="YBidManager.cancel();" tabindex="2"/>
+    </hbox>
+  </vbox>
+</window>

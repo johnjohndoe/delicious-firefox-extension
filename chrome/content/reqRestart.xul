@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://ybookmarks/skin/idDialogs.css" type="text/css"?>
+
+<!DOCTYPE page SYSTEM "chrome://ybookmarks/locale/reqRestart.dtd">
+
+<window
+   id="dlg_reqRestart" 
+   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+   xmlns:html="http://www.w3.org/1999/xhtml"
+   persist="screenX screenY"
+   onload="YBreqRestartManager._onLoad();">
+
+  <script src="chrome://ybookmarks/content/yDebug.js" type="application/x-javascript" />  
+  <script src="chrome://ybookmarks/content/providerApis.js" type="application/x-javascript" />  
+  <script src="chrome://browser/content/utilityOverlay.js" type="application/x-javascript" />
+  <script src="chrome://ybookmarks/content/ybookmarksUtils.js" type="application/x-javascript" />  
+  <script src="chrome://ybookmarks/content/reqRestartManager.js" type="application/x-javascript" />
+  
+  <stringbundleset>
+      <stringbundle id="strbndl_restartManager" src="chrome://ybookmarks/locale/reqRestart.properties"/>
+  </stringbundleset>
+
+	<vbox class="doubly-padded">
+    <description id="desc_mainText" />
+		<spacer class="line"/>  
+    <hbox>
+      <spacer flex="1"/>
+      <button id="req_restart_now" label="&reqRestart.now.label;" default="true"
+              accesskey="&reqRestart.now.accesskey;" oncommand="YBreqRestartManager._restart();" tabindex="1"/>
+      <button id="req_restart_later" label="&reqRestart.later.label;" 
+              accesskey="&reqRestart.later.accesskey;" oncommand="YBreqRestartManager._restartLater();" tabindex="2"/>
+    </hbox>
+  </vbox>
+</window>

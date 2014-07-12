@@ -1,0 +1,67 @@
+<!ENTITY ybookmarks.bookmark.this.page       "Save a new Bookmark...">
+<!ENTITY ybookmarks.bookmark.all.tags        "Bookmark All Tabs...">
+<!ENTITY ybookmarks.yourbookmarks.label      "Bookmarks Sidebar">
+
+<!ENTITY ybookmarks.provider.menu.label      "Delicious Website">
+<!ENTITY ybookmarks.provider.menu.label.accesskey      "D">
+<!ENTITY ybookmarks.loggedin.label           "Signed In">
+<!ENTITY ybookmarks.loggedin.label.accesskey           "S">
+<!ENTITY ybookmarks.logout.label             "Sign out">
+<!ENTITY ybookmarks.login.label              "Sign in">
+
+<!ENTITY ybookmarks.frequently.visited       "Most Visited">
+<!ENTITY ybookmarks.frequently.visited.accesskey  "M">
+<!ENTITY ybookmarks.recently.visited         "Recently Visited">
+<!ENTITY ybookmarks.recently.saved.label     "Recently Bookmarked">
+<!ENTITY ybookmarks.recently.saved.label.accesskey "R">
+
+<!ENTITY ybookmarks.tour.label               "How do I use this?">
+
+<!ENTITY ybookmarks.tags.label               "Tags">
+<!ENTITY ybookmarks.tags.label.accesskey     "T">
+<!ENTITY ybookmarks.tags.tooltip             "Tags...">
+<!ENTITY ybookmarks.favtags.label            "Favorite Tags">
+<!ENTITY ybookmarks.favtags.tooltip          "Favorite Tags...">
+
+<!ENTITY ybookmarks.options.label            "Options">
+<!ENTITY ybookmarks.options.tooltip          "Options">
+
+<!ENTITY ybookmarks.tagstoolbar.label        "Tags Toolbar Folder">
+<!ENTITY ybookmarks.tagstoolbar.edit.label   "Manage Favorite Tags...">
+<!ENTITY ybookmarks.tagstoolbar.edit.label.accesskey   "M">
+<!ENTITY ybookmarks.tagstoolbar.show.label   "Show Tags Toolbar">
+
+<!ENTITY ybookmarks.recentbookmarks.label    "Recently Bookmarked">
+<!ENTITY ybookmarks.recentbookmarks.tooltip  "Recently Bookmarked...">
+<!ENTITY ybookmarks.recentVisited.label      "Recently Visited">
+<!ENTITY ybookmarks.recentVisited.tooltip    "Recently Visited...">
+
+<!ENTITY delicious.your.label            "Bookmarks on Delicious    ">
+<!ENTITY delicious.your.accesskey        "B">
+<!ENTITY delicious.your.accelchar        "K">
+<!ENTITY delicious.addbm.accelchar       "L">
+<!ENTITY delicious.network.label         "Network">
+<!ENTITY delicious.network.accesskey         "N">
+<!ENTITY delicious.subscriptions.label   "Subscriptions">
+<!ENTITY delicious.subscriptions.accesskey   "S">
+<!ENTITY delicious.linksforyou.label     "Inbox">
+<!ENTITY delicious.linksforyou.accesskey "I">
+<!ENTITY delicious.accountsettings.label "Account Settings">
+<!ENTITY delicious.accountsettings.accesskey "A">
+
+<!ENTITY delicious.homepage.label  "Home">
+<!ENTITY delicious.homepage.accesskey  "H">
+<!ENTITY delicious.popular.label   "Popular">
+<!ENTITY delicious.popular.accesskey   "P">
+<!ENTITY delicious.recent.label    "Recent">
+<!ENTITY delicious.recent.accesskey    "R">
+
+<!ENTITY delicious.about.label      "About Delicious">
+<!ENTITY delicious.about.accesskey      "B">
+<!ENTITY delicious.moreabout.label  "More About This Page">
+<!ENTITY delicious.moreabout.accesskey  "A">
+
+<!ENTITY delicious.import.label      "Import Bookmarks">
+<!ENTITY delicious.import.accesskey      "I">
+<!ENTITY delicious.switch.to.standard.label      "Switch to Normal Mode">
+<!ENTITY delicious.switch.to.classic.label      "Switch to Classic Mode">
