@@ -1,4 +1,5 @@
-* Delicious Firefox Plugiin
+Delicious Firefox Plugiin
+==========
 
 This a learning project. No serious content ;)
 
@@ -10,6 +11,7 @@ Currently learning about
 
 Trying to fix this plugin
 
-* Development Tools
+Development Tools
+==========
 
 Delicious API https://github.com/SciDevs/delicious-api
